@@ -1,20 +1,43 @@
 #include "nickelcloud.h"
 #include <NickelHook.h>
 #include <QObject>
+#include <QStringList>
 
-using N3FSSyncManager = QObject;
-static N3FSSyncManager* (*N3FSSyncManager__sharedInstance)();
+static QObject* (*N3FSSyncManagerInstance)();
+static void (*N3FSSyncManagerSync)(QObject*, QStringList*);
 
-void NickelCloudWatcher::onSyncFinished()
+static bool ReScanning = false;
+
+void NickelCloudWatcher::OnSyncFinished()
 {
-    nh_log("NickelCloud: sync finished");
+    if (ReScanning)
+    {
+        ReScanning = false;
+
+        nh_log("NickelCloud: Rescan finished");
+        nh_dump_log();
+        return;
+    }
+
+    auto* fss = N3FSSyncManagerInstance();
+    if (!fss)
+    {
+        return;
+    }
+
+    nh_log("NickelCloud: sync finished, triggering rescan");
+
+    ReScanning = true;
+
+    QStringList path("/mnt/onboard");
+    N3FSSyncManagerSync(fss, &path);
     nh_dump_log();
 }
 
-static int nickelcloud_init()
+static int NickelCloudInit()
 {
-    auto* fss = N3FSSyncManager__sharedInstance
-        ? N3FSSyncManager__sharedInstance()
+    auto* fss = N3FSSyncManagerInstance
+        ? N3FSSyncManagerInstance()
         : nullptr;
     if (!fss)
     {
@@ -23,7 +46,7 @@ static int nickelcloud_init()
     }
 
     QObject::connect(fss, SIGNAL(finished()), new NickelCloudWatcher(),
-        SLOT(onSyncFinished()), Qt::UniqueConnection);
+        SLOT(OnSyncFinished()), Qt::UniqueConnection);
     nh_log("NickelCloud: watching N3FSSyncManager::finished()");
     return 0;
 }
@@ -41,14 +64,19 @@ static struct nh_hook NickelCloudHook[] = {
 static struct nh_dlsym NickelCloudDlsym[] = {
     {
         .name = "_ZN15N3FSSyncManager14sharedInstanceEv",
-        .out = nh_symoutptr(N3FSSyncManager__sharedInstance),
+        .out = nh_symoutptr(N3FSSyncManagerInstance),
         .desc = "N3FSSyncManager::sharedInstance",
+    },
+    {
+        .name = "_ZN15N3FSSyncManager4syncERK11QStringList",
+        .out = nh_symoutptr(N3FSSyncManagerSync),
+        .desc = "N3FSSyncManager::sync",
     },
     {0},
 };
 
 NickelHook(
-    .init = nickelcloud_init,
+    .init = NickelCloudInit,
     .info = &NickelCloud,
     .hook = NickelCloudHook,
     .dlsym = NickelCloudDlsym,

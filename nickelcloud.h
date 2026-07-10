@@ -7,5 +7,5 @@ class NickelCloudWatcher : public QObject
     Q_OBJECT
 
 public slots:
-    void onSyncFinished();
+    void OnSyncFinished();
 };
