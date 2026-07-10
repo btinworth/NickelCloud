@@ -9,12 +9,14 @@
 static QObject* (*N3FSSyncManagerInstance)();
 static void (*N3FSSyncManagerSync)(QObject*, QStringList*);
 
-static const char* RCLONE_BIN = "/usr/local/nickelcloud/rclone";
-static const char* CA_CERT = "/usr/local/nickelcloud/cacert.pem";
-static const char* RCLONE_CONF = "/mnt/onboard/.adds/nickelcloud/rclone.conf";
-static const char* RCLONE_LOG = "/mnt/onboard/.adds/nickelcloud/rclone.log";
-static const char* RCLONE_TMPL = "/usr/local/nickelcloud/rclone.conf.tmpl";
-static const char* CONFIG_DIR = "/mnt/onboard/.adds/nickelcloud";
+#define CONFIG_DIR "/mnt/onboard/.adds/nickelcloud"
+#define INSTALL_DIR "/usr/local/nickelcloud"
+
+static const char* RCLONE_BIN = INSTALL_DIR "/rclone";
+static const char* CA_CERT = INSTALL_DIR "/cacert.pem";
+static const char* RCLONE_TMPL = INSTALL_DIR "/rclone.conf.tmpl";
+static const char* RCLONE_CONF = CONFIG_DIR "/rclone.conf";
+static const char* RCLONE_LOG = CONFIG_DIR "/rclone.log";
 
 static bool ReScanning = false; // true while our own rescan runs, so the finished() it emits doesn't loop
 static bool Pulling = false; // true while rclone is running
