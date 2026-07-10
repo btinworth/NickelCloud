@@ -3,8 +3,8 @@ KoboRoot.tgz
 
 # NickelCloud (C mod) build artifacts
 /libnickelcloud.so
-/src/*.o
-/src/*.moc
+/*.o
+/*.moc
 compile_commands.json
 .cache/
 
