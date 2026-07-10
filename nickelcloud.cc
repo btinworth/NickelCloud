@@ -99,7 +99,7 @@ void NickelCloudWatcher::StartSync(const QString& source, const QString& dest)
 
     auto* rclone = new QProcess(this);
     QObject::connect(rclone, SIGNAL(finished(int, QProcess::ExitStatus)), this,
-        SLOT(OnPullFinished(int, QProcess::ExitStatus)));
+        SLOT(OnSyncFinished(int, QProcess::ExitStatus)));
     QObject::connect(rclone, SIGNAL(finished(int, QProcess::ExitStatus)), rclone,
         SLOT(deleteLater()));
 
@@ -136,7 +136,7 @@ void NickelCloudWatcher::SyncNext()
     StartSync(next.source, next.dest);
 }
 
-void NickelCloudWatcher::OnSyncFinished()
+void NickelCloudWatcher::OnDeviceSyncFinished()
 {
     if (ReScanning)
     {
@@ -162,7 +162,7 @@ void NickelCloudWatcher::OnSyncFinished()
     SyncNext();
 }
 
-void NickelCloudWatcher::OnPullFinished(int exitCode, QProcess::ExitStatus status)
+void NickelCloudWatcher::OnSyncFinished(int exitCode, QProcess::ExitStatus status)
 {
     auto source = SyncQueue.head().source;
 
@@ -214,15 +214,14 @@ static int NickelCloudInit()
         return 0;
     }
 
-    QObject::connect(fss, SIGNAL(finished()), new NickelCloudWatcher(),
-        SLOT(OnSyncFinished()), Qt::UniqueConnection);
+    QObject::connect(fss, SIGNAL(finished()), new NickelCloudWatcher(), SLOT(OnDeviceSyncFinished()), Qt::UniqueConnection);
     nh_log("NickelCloud: watching N3FSSyncManager::finished()");
     return 0;
 }
 
 static struct nh_info NickelCloud = {
     .name = "NickelCloud",
-    .desc = "Pull books from the cloud",
+    .desc = "Sync books from the cloud",
     .uninstall_flag = "/mnt/onboard/.adds/nickelcloud/uninstall",
 };
 

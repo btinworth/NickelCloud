@@ -15,8 +15,8 @@ class NickelCloudWatcher : public QObject
     Q_OBJECT
 
 public slots:
-    void OnSyncFinished();
-    void OnPullFinished(int exitCode, QProcess::ExitStatus status);
+    void OnDeviceSyncFinished();
+    void OnSyncFinished(int exitCode, QProcess::ExitStatus status);
 
 private:
     void StartSync(const QString& source, const QString& dest);
