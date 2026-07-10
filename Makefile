@@ -6,4 +6,30 @@ override MOCS     += nickelcloud.h
 override CFLAGS   += -Wall -Wextra -Werror
 override CXXFLAGS += -Wall -Wextra -Werror -Wno-missing-field-initializers
 
+override KOBOROOT  += rclone:/usr/local/nickelcloud/rclone
+override KOBOROOT  += cacert.pem:/usr/local/nickelcloud/cacert.pem
+override GENERATED += rclone cacert.pem rclone-*.zip
+
 include NickelHook/NickelHook.mk
+
+koboroot: rclone cacert.pem
+
+rclone:
+	@set -e; \
+	version="$$(curl -fsSL https://downloads.rclone.org/version.txt | sed 's/rclone v//')"; \
+	zip="rclone-v$$version-linux-arm-v7.zip"; \
+	url="https://github.com/rclone/rclone/releases/download/v$$version"; \
+	curl -fsSL "$$url/$$zip" -o "$$zip"; \
+	exp="$$(curl -fsSL "$$url/SHA256SUMS" | grep "$$zip" | awk '{print $$1}')"; \
+	act="$$(sha256sum "$$zip" | awk '{print $$1}')"; \
+	[ "$$exp" = "$$act" ] || { echo "rclone checksum mismatch: $$exp != $$act"; rm -f "$$zip"; exit 1; }; \
+	unzip -p "$$zip" "rclone-v$$version-linux-arm-v7/rclone" > rclone; \
+	rm -f "$$zip"; \
+	chmod +x rclone
+
+cacert.pem:
+	@set -e; \
+	curl -fsSL "https://curl.se/ca/cacert.pem" -o cacert.pem; \
+	exp="$$(curl -fsSL "https://curl.se/ca/cacert.pem.sha256" | awk '{print $$1}')"; \
+	act="$$(sha256sum cacert.pem | awk '{print $$1}')"; \
+	[ "$$exp" = "$$act" ] || { echo "cacert.pem checksum mismatch: $$exp != $$act"; rm -f cacert.pem; exit 1; }
