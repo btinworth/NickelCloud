@@ -9,7 +9,7 @@ compile_commands.json
 .cache/
 
 # downloaded rclone binary + CA bundle
-/rclone
+/rclone-armv7
 /rclone-*.zip
 /cacert.pem
 

@@ -6,15 +6,15 @@ override MOCS     += nickelcloud.h
 override CFLAGS   += -Wall -Wextra -Werror
 override CXXFLAGS += -Wall -Wextra -Werror -Wno-missing-field-initializers
 
-override KOBOROOT  += rclone:/usr/local/nickelcloud/rclone
+override KOBOROOT  += rclone-armv7:/usr/local/nickelcloud/rclone
 override KOBOROOT  += cacert.pem:/usr/local/nickelcloud/cacert.pem
-override GENERATED += rclone cacert.pem rclone-*.zip
+override GENERATED += rclone-armv7 cacert.pem rclone-*.zip
 
 include NickelHook/NickelHook.mk
 
-koboroot: rclone cacert.pem
+koboroot: rclone-armv7 cacert.pem
 
-rclone:
+rclone-armv7:
 	@set -e; \
 	version="$$(curl -fsSL https://downloads.rclone.org/version.txt | sed 's/rclone v//')"; \
 	zip="rclone-v$$version-linux-arm-v7.zip"; \
@@ -23,9 +23,9 @@ rclone:
 	exp="$$(curl -fsSL "$$url/SHA256SUMS" | grep "$$zip" | awk '{print $$1}')"; \
 	act="$$(sha256sum "$$zip" | awk '{print $$1}')"; \
 	[ "$$exp" = "$$act" ] || { echo "rclone checksum mismatch: $$exp != $$act"; rm -f "$$zip"; exit 1; }; \
-	unzip -p "$$zip" "rclone-v$$version-linux-arm-v7/rclone" > rclone; \
+	unzip -p "$$zip" "rclone-v$$version-linux-arm-v7/rclone" > rclone-armv7; \
 	rm -f "$$zip"; \
-	chmod +x rclone
+	chmod +x rclone-armv7
 
 cacert.pem:
 	@set -e; \
