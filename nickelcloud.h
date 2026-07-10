@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QProcess>
 
 class NickelCloudWatcher : public QObject
 {
@@ -8,4 +9,5 @@ class NickelCloudWatcher : public QObject
 
 public slots:
     void OnSyncFinished();
+    void OnPullFinished(int exitCode, QProcess::ExitStatus status);
 };

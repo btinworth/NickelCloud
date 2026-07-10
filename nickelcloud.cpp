@@ -1,37 +1,97 @@
 #include "nickelcloud.h"
 #include <NickelHook.h>
 #include <QObject>
+#include <QProcess>
 #include <QStringList>
 
 static QObject* (*N3FSSyncManagerInstance)();
 static void (*N3FSSyncManagerSync)(QObject*, QStringList*);
 
-static bool ReScanning = false;
+static const char* RCLONE_BIN = "/usr/local/nickelcloud/rclone";
+static const char* CA_CERT = "/usr/local/nickelcloud/cacert.pem";
+static const char* RCLONE_CONF = "/mnt/onboard/.adds/nickelcloud/rclone.conf";
+static const char* RCLONE_LOG = "/mnt/onboard/.adds/nickelcloud/rclone.log";
 
-void NickelCloudWatcher::OnSyncFinished()
+static bool ReScanning = false; // true while our own rescan runs, so the finished() it emits doesn't loop
+static bool Pulling = false; // true while rclone is running
+
+static void TriggerRescan()
 {
-    if (ReScanning)
-    {
-        ReScanning = false;
-
-        nh_log("NickelCloud: Rescan finished");
-        nh_dump_log();
-        return;
-    }
-
     auto* fss = N3FSSyncManagerInstance();
     if (!fss)
     {
         return;
     }
 
-    nh_log("NickelCloud: sync finished, triggering rescan");
-
     ReScanning = true;
 
     QStringList path("/mnt/onboard");
     N3FSSyncManagerSync(fss, &path);
+}
+
+void NickelCloudWatcher::OnSyncFinished()
+{
+    if (ReScanning)
+    {
+        ReScanning = false;
+        return;
+    }
+    if (Pulling)
+    {
+        return;
+    }
+
+    nh_log("NickelCloud: sync finished, pulling from cloud");
+    Pulling = true;
+
+    // TODO(config): source/dest hardcoded for now — replaced with config in step 3
+    auto* rclone = new QProcess(this);
+    QObject::connect(rclone, SIGNAL(finished(int, QProcess::ExitStatus)), this,
+        SLOT(OnPullFinished(int, QProcess::ExitStatus)));
+    QObject::connect(rclone, SIGNAL(finished(int, QProcess::ExitStatus)), rclone,
+        SLOT(deleteLater()));
+
+    QStringList args;
+    args << "copy"
+         << "OneDrive:eBooks"
+         << "/mnt/onboard/OneDrive/eBooks"
+         << "--config" << RCLONE_CONF
+         << "--ca-cert" << CA_CERT
+         << "--error-on-no-transfer"
+         << "--log-file" << RCLONE_LOG
+         << "--log-level" << "INFO";
+    rclone->start(RCLONE_BIN, args);
     nh_dump_log();
+}
+
+void NickelCloudWatcher::OnPullFinished(int exitCode, QProcess::ExitStatus status)
+{
+    Pulling = false;
+
+    if (status != QProcess::NormalExit)
+    {
+        nh_log("NickelCloud: rclone crashed");
+        nh_dump_log();
+        return;
+    }
+    if (exitCode == 0)
+    {
+        nh_log("NickelCloud: rclone downloaded files, triggering rescan");
+        nh_dump_log();
+
+        TriggerRescan();
+        return;
+    }
+    if (exitCode == 9)
+    {
+        nh_log("NickelCloud: rclone found nothing new to download");
+        nh_dump_log();
+        return;
+    }
+
+    nh_log("NickelCloud: rclone failed with exit code: %d", exitCode);
+    nh_dump_log();
+    return;
 }
 
 static int NickelCloudInit()
