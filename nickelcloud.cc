@@ -32,7 +32,7 @@ static bool SyncInProgress = false; // true whilst download is in progress
 static void TriggerRescan()
 {
     auto* fss = N3FSSyncManagerInstance();
-    if (!fss)
+    if (fss == nullptr)
     {
         return;
     }
@@ -200,8 +200,8 @@ void NickelCloudWatcher::OnSyncError(QProcess::ProcessError error)
 
     nh_log("NickelCloud: rclone failed to start for %s", qPrintable(SyncQueue.head().source));
 
-    if (auto* rclone = qobject_cast<QProcess*>(sender());
-        rclone != nullptr)
+    auto* rclone = qobject_cast<QProcess*>(sender());
+    if (rclone != nullptr)
     {
         rclone->deleteLater();
     }
@@ -229,8 +229,8 @@ static int NickelCloudInit()
 {
     InitConfig();
 
-    auto* fss = N3FSSyncManagerInstance ? N3FSSyncManagerInstance() : nullptr;
-    if (!fss)
+    auto* fss = N3FSSyncManagerInstance != nullptr ? N3FSSyncManagerInstance() : nullptr;
+    if (fss == nullptr)
     {
         nh_log("NickelCloud: could not get N3FSSyncManager instance");
         return 0;
