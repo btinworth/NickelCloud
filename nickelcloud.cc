@@ -100,6 +100,8 @@ void NickelCloudWatcher::StartSync(const QString& source, const QString& dest)
     auto* rclone = new QProcess(this);
     QObject::connect(rclone, SIGNAL(finished(int, QProcess::ExitStatus)), this,
         SLOT(OnSyncFinished(int, QProcess::ExitStatus)));
+    QObject::connect(rclone, SIGNAL(error(QProcess::ProcessError)), this,
+        SLOT(OnSyncError(QProcess::ProcessError)));
     QObject::connect(rclone, SIGNAL(finished(int, QProcess::ExitStatus)), rclone,
         SLOT(deleteLater()));
 
@@ -182,6 +184,26 @@ void NickelCloudWatcher::OnSyncFinished(int exitCode, QProcess::ExitStatus statu
     else
     {
         nh_log("NickelCloud: rclone failed for %s (exit %d)", qPrintable(source), exitCode);
+    }
+
+    SyncQueue.dequeue();
+    SyncNext();
+}
+
+void NickelCloudWatcher::OnSyncError(QProcess::ProcessError error)
+{
+    // only FailedToStart skips finished(); other errors are handled by OnSyncFinished
+    if (error != QProcess::FailedToStart)
+    {
+        return;
+    }
+
+    nh_log("NickelCloud: rclone failed to start for %s", qPrintable(SyncQueue.head().source));
+
+    if (auto* rclone = qobject_cast<QProcess*>(sender());
+        rclone != nullptr)
+    {
+        rclone->deleteLater();
     }
 
     SyncQueue.dequeue();
