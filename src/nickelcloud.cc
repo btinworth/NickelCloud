@@ -6,44 +6,29 @@
 typedef QObject N3FSSyncManager;
 static N3FSSyncManager *(*N3FSSyncManager__sharedInstance)();
 
-void NickelCloudWatcher::onGotNumFiles(int num) {
-    nh_log("NickelCloud: N3FSSyncManager sync started (%d files to process)", num);
-}
-
-void NickelCloudWatcher::onParseProgress(int n) {
-    nh_log("NickelCloud: N3FSSyncManager parse progress: %d", n);
-}
-
 void NickelCloudWatcher::onSyncFinished() {
-    nh_log("NickelCloud: N3FSSyncManager sync finished (detected!)");
+    nh_log("NickelCloud: sync finished");
     nh_dump_log();
 }
 
 static int nickelcloud_init() {
-    nh_log("NickelCloud: loaded");
-
     N3FSSyncManager *fss = N3FSSyncManager__sharedInstance
                          ? N3FSSyncManager__sharedInstance()
                          : NULL;
     if (!fss) {
         nh_log("NickelCloud: could not get N3FSSyncManager instance");
-        nh_dump_log();
         return 0;
     }
 
-    NickelCloudWatcher *w = new NickelCloudWatcher();
-    QObject::connect(fss, SIGNAL(gotNumFilesToProcess(int)), w, SLOT(onGotNumFiles(int)), Qt::UniqueConnection);
-    QObject::connect(fss, SIGNAL(parseProgress(int)),        w, SLOT(onParseProgress(int)), Qt::UniqueConnection);
-    QObject::connect(fss, SIGNAL(finished()),                w, SLOT(onSyncFinished()), Qt::UniqueConnection);
-
-    nh_log("NickelCloud: watching N3FSSyncManager (gotNumFilesToProcess/parseProgress/finished)");
-    nh_dump_log();
+    QObject::connect(fss, SIGNAL(finished()), new NickelCloudWatcher(),
+                     SLOT(onSyncFinished()), Qt::UniqueConnection);
+    nh_log("NickelCloud: watching N3FSSyncManager::finished()");
     return 0;
 }
 
 static struct nh_info NickelCloud = {
     .name           = "NickelCloud",
-    .desc           = "Detect Nickel content sync (spike)",
+    .desc           = "Pull books from the cloud",
     .uninstall_flag = "/mnt/onboard/.adds/nickelcloud/uninstall",
 };
 
