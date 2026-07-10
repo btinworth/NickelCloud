@@ -1,5 +1,7 @@
 #include "nickelcloud.h"
 #include <NickelHook.h>
+#include <QDir>
+#include <QFile>
 #include <QObject>
 #include <QProcess>
 #include <QStringList>
@@ -11,6 +13,8 @@ static const char* RCLONE_BIN = "/usr/local/nickelcloud/rclone";
 static const char* CA_CERT = "/usr/local/nickelcloud/cacert.pem";
 static const char* RCLONE_CONF = "/mnt/onboard/.adds/nickelcloud/rclone.conf";
 static const char* RCLONE_LOG = "/mnt/onboard/.adds/nickelcloud/rclone.log";
+static const char* RCLONE_TMPL = "/usr/local/nickelcloud/rclone.conf.tmpl";
+static const char* CONFIG_DIR = "/mnt/onboard/.adds/nickelcloud";
 
 static bool ReScanning = false; // true while our own rescan runs, so the finished() it emits doesn't loop
 static bool Pulling = false; // true while rclone is running
@@ -94,11 +98,21 @@ void NickelCloudWatcher::OnPullFinished(int exitCode, QProcess::ExitStatus statu
     return;
 }
 
+static void InitConfig()
+{
+    QDir().mkpath(CONFIG_DIR);
+    if (!QFile::exists(RCLONE_CONF))
+    {
+        QFile::copy(RCLONE_TMPL, RCLONE_CONF);
+        nh_log("NickelCloud: created rclone.conf from template");
+    }
+}
+
 static int NickelCloudInit()
 {
-    auto* fss = N3FSSyncManagerInstance
-        ? N3FSSyncManagerInstance()
-        : nullptr;
+    InitConfig();
+
+    auto* fss = N3FSSyncManagerInstance ? N3FSSyncManagerInstance() : nullptr;
     if (!fss)
     {
         nh_log("NickelCloud: could not get N3FSSyncManager instance");
