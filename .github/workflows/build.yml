@@ -3,7 +3,7 @@ name: Build
 on:
   push:
     branches:
-      - main
+      - nickelcloud
   workflow_dispatch:
 
 jobs:
@@ -11,13 +11,20 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout (with NickelHook submodule)
         uses: actions/checkout@v7
+        with:
+          submodules: recursive
 
-      - name: Create KoboRoot
-        run: ./makeKoboRoot.sh
+      - name: Build with NickelTC
+        run: |
+          docker run --rm \
+            -v "$PWD:$PWD" -w "$PWD" \
+            -u "$(id -u):$(id -g)" -e HOME=/tmp \
+            ghcr.io/pgaskin/nickeltc:1 \
+            sh -c 'make && make koboroot'
 
-      - name: Upload
+      - name: Upload KoboRoot.tgz
         uses: actions/upload-artifact@v7
         with:
           path: KoboRoot.tgz
