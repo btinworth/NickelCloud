@@ -9,6 +9,7 @@ override CXXFLAGS += -Wall -Wextra -Werror -Wno-missing-field-initializers
 override KOBOROOT  += rclone-armv7:/usr/local/nickelcloud/rclone
 override KOBOROOT  += cacert.pem:/usr/local/nickelcloud/cacert.pem
 override KOBOROOT  += config/rclone.conf.tmpl:/usr/local/nickelcloud/rclone.conf.tmpl
+override KOBOROOT  += config/nickelcloud.conf.tmpl:/usr/local/nickelcloud/nickelcloud.conf.tmpl
 override GENERATED += rclone-armv7 cacert.pem rclone-*.zip
 
 include NickelHook/NickelHook.mk
