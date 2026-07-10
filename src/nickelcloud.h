@@ -8,5 +8,7 @@
 class NickelCloudWatcher : public QObject {
     Q_OBJECT
 public slots:
-    void onSyncFinished();
+    void onGotNumFiles(int num);   // sync started, N files to process
+    void onParseProgress(int n);   // progress (chatty)
+    void onSyncFinished();         // sync done
 };

@@ -1,21 +1,22 @@
 #include <cstddef>
-
 #include <QObject>
-
 #include <NickelHook.h>
-
 #include "nickelcloud.h"
 
-// N3FSSyncManager is a QObject singleton inside libnickel. We can't PLT-hook its
-// sync() (Nickel doesn't call it through the PLT), but — like NickelDBus does —
-// we can resolve sharedInstance() with dlsym and connect to its signals. This
-// spike just detects a sync via finished() and logs it.
 typedef QObject N3FSSyncManager;
 static N3FSSyncManager *(*N3FSSyncManager__sharedInstance)();
 
+void NickelCloudWatcher::onGotNumFiles(int num) {
+    nh_log("NickelCloud: N3FSSyncManager sync started (%d files to process)", num);
+}
+
+void NickelCloudWatcher::onParseProgress(int n) {
+    nh_log("NickelCloud: N3FSSyncManager parse progress: %d", n);
+}
+
 void NickelCloudWatcher::onSyncFinished() {
     nh_log("NickelCloud: N3FSSyncManager sync finished (detected!)");
-    nh_dump_log(); // proof at /mnt/onboard/NickelCloud_*.log (drive root)
+    nh_dump_log();
 }
 
 static int nickelcloud_init() {
@@ -27,15 +28,16 @@ static int nickelcloud_init() {
     if (!fss) {
         nh_log("NickelCloud: could not get N3FSSyncManager instance");
         nh_dump_log();
-        return 0; // stay loaded so the log survives for diagnosis
+        return 0;
     }
 
-    // finished() is what NickelDBus connects to for its fssFinished signal.
-    QObject::connect(fss, SIGNAL(finished()), new NickelCloudWatcher(),
-                     SLOT(onSyncFinished()), Qt::UniqueConnection);
+    NickelCloudWatcher *w = new NickelCloudWatcher();
+    QObject::connect(fss, SIGNAL(gotNumFilesToProcess(int)), w, SLOT(onGotNumFiles(int)), Qt::UniqueConnection);
+    QObject::connect(fss, SIGNAL(parseProgress(int)),        w, SLOT(onParseProgress(int)), Qt::UniqueConnection);
+    QObject::connect(fss, SIGNAL(finished()),                w, SLOT(onSyncFinished()), Qt::UniqueConnection);
 
-    nh_log("NickelCloud: watching N3FSSyncManager::finished()");
-    nh_dump_log(); // proves init ran and the connection was made
+    nh_log("NickelCloud: watching N3FSSyncManager (gotNumFilesToProcess/parseProgress/finished)");
+    nh_dump_log();
     return 0;
 }
 
