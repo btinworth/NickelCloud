@@ -8,6 +8,7 @@
 #include <QString>
 #include <QStringList>
 
+static QObject* (*WirelessManagerInstance)();
 static QObject* (*N3FSSyncManagerInstance)();
 static void (*N3FSSyncManagerSync)(QObject*, QStringList*);
 
@@ -26,8 +27,7 @@ static const char* CACHE_DIR = CONFIG_DIR "/cache";
 
 static QQueue<SyncPair> SyncQueue; // remaining sources
 static bool AnyTransferred = false; // true if anything was downloaded
-static bool ReScanning = false; // true whilst nickelcloud is scanning (prevents loop)
-static bool SyncInProgress = false; // true whilst download is in progress
+static bool SyncInProgress = false; // true whilst syncing
 
 static void TriggerRescan()
 {
@@ -36,8 +36,6 @@ static void TriggerRescan()
     {
         return;
     }
-
-    ReScanning = true;
 
     QStringList path(ONBOARD_DIR);
     N3FSSyncManagerSync(fss, &path);
@@ -138,13 +136,8 @@ void NickelCloudWatcher::SyncNext()
     StartSync(next.source, next.dest);
 }
 
-void NickelCloudWatcher::OnDeviceSyncFinished()
+void NickelCloudWatcher::OnNetworkConnected()
 {
-    if (ReScanning)
-    {
-        ReScanning = false;
-        return;
-    }
     if (SyncInProgress)
     {
         return;
@@ -160,7 +153,7 @@ void NickelCloudWatcher::OnDeviceSyncFinished()
     SyncInProgress = true;
     AnyTransferred = false;
 
-    nh_log("NickelCloud: sync finished, pulling %d source(s) from cloud", SyncQueue.size());
+    nh_log("NickelCloud: network connected, pulling %d source(s) from cloud", SyncQueue.size());
     SyncNext();
 }
 
@@ -229,15 +222,15 @@ static int NickelCloudInit()
 {
     InitConfig();
 
-    auto* fss = N3FSSyncManagerInstance != nullptr ? N3FSSyncManagerInstance() : nullptr;
-    if (fss == nullptr)
+    auto* wm = WirelessManagerInstance != nullptr ? WirelessManagerInstance() : nullptr;
+    if (wm == nullptr)
     {
-        nh_log("NickelCloud: could not get N3FSSyncManager instance");
+        nh_log("NickelCloud: could not get WirelessManager instance");
         return 0;
     }
 
-    QObject::connect(fss, SIGNAL(finished()), new NickelCloudWatcher(), SLOT(OnDeviceSyncFinished()), Qt::UniqueConnection);
-    nh_log("NickelCloud: watching N3FSSyncManager::finished()");
+    QObject::connect(wm, SIGNAL(networkConnected()), new NickelCloudWatcher(), SLOT(OnNetworkConnected()), Qt::UniqueConnection);
+    nh_log("NickelCloud: watching WirelessManager::networkConnected()");
     return 0;
 }
 
@@ -252,6 +245,11 @@ static struct nh_hook NickelCloudHook[] = {
 };
 
 static struct nh_dlsym NickelCloudDlsym[] = {
+    {
+        .name = "_ZN15WirelessManager14sharedInstanceEv",
+        .out = nh_symoutptr(WirelessManagerInstance),
+        .desc = "WirelessManager::sharedInstance",
+    },
     {
         .name = "_ZN15N3FSSyncManager14sharedInstanceEv",
         .out = nh_symoutptr(N3FSSyncManagerInstance),
