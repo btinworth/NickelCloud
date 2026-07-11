@@ -32,6 +32,7 @@ private:
     void SyncNext();
     void ReadSyncOutput(QProcess* rclone);
     void FlushSyncOutput();
+    void HandleSyncOutputLine(const QString& line);
 
     NickelCloudConfig Config;
     QQueue<SyncPair> SyncQueue;

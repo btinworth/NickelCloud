@@ -77,17 +77,7 @@ void NickelCloudWatcher::OnSyncFinished(int exitCode, QProcess::ExitStatus statu
     }
     else if (exitCode == 0)
     {
-        AnyTransferred = true;
-        nh_log("NickelCloud: downloaded new files for %s", qPrintable(source));
-    }
-    else if (exitCode == 9)
-    {
-        if (Config.GetMode() == "sync")
-        {
-            // in sync mode rclone returns 9 when files were only deleted
-            AnyTransferred = true;
-        }
-        nh_log("NickelCloud: nothing new for %s", qPrintable(source));
+        nh_log("NickelCloud: rclone completed successfully for %s", qPrintable(source));
     }
     else
     {
@@ -118,11 +108,7 @@ void NickelCloudWatcher::ReadSyncOutput(QProcess* rclone)
     {
         auto line = QString::fromUtf8(PendingOutput.left(newline)).trimmed();
         PendingOutput.remove(0, newline + 1);
-
-        if (!line.isEmpty())
-        {
-            nh_log("NickelCloud: %s", qPrintable(line));
-        }
+        HandleSyncOutputLine(line);
     }
 }
 
@@ -130,11 +116,23 @@ void NickelCloudWatcher::FlushSyncOutput()
 {
     auto line = QString::fromUtf8(PendingOutput).trimmed();
     PendingOutput.clear();
+    HandleSyncOutputLine(line);
+}
 
-    if (!line.isEmpty())
+void NickelCloudWatcher::HandleSyncOutputLine(const QString& line)
+{
+    if (line.isEmpty())
     {
-        nh_log("NickelCloud: %s", qPrintable(line));
+        return;
     }
+
+    if (line.contains(": Copied") || line.contains(": Deleted"))
+    {
+        // a file has changed, flag for library scan
+        AnyTransferred = true;
+    }
+
+    nh_log("NickelCloud: %s", qPrintable(line));
 }
 
 void NickelCloudWatcher::OnSyncError(QProcess::ProcessError error)
@@ -235,7 +233,6 @@ void NickelCloudWatcher::StartSync(const QString& source, const QString& dest)
          << "--config" << RCLONE_CONF
          << "--ca-cert" << CA_CERT
          << "--cache-dir" << CACHE_DIR
-         << "--error-on-no-transfer"
          << "--stats" << "0"
          << "--log-level" << "INFO"
          << "--transfers" << QString::number(Config.GetTransfers())
