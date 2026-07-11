@@ -15,6 +15,7 @@ class NickelCloudConfig
 public:
     void Load(const QString& path);
 
+    QString GetMode() const;
     int GetInterval() const;
 
     const QQueue<SyncPair>& GetSources() const;

@@ -74,6 +74,20 @@ void NickelCloudConfig::Load(const QString& path)
     }
 }
 
+QString NickelCloudConfig::GetMode() const
+{
+    static const QString DEFAULT_MODE = "copy";
+
+    auto mode = GetString("mode", DEFAULT_MODE);
+    if (mode == "copy" || mode == "sync")
+    {
+        return mode;
+    }
+
+    nh_log("NickelCloud: ignoring invalid mode '%s', defaulting to '%s'", qPrintable(mode), qPrintable(DEFAULT_MODE));
+    return DEFAULT_MODE;
+}
+
 int NickelCloudConfig::GetInterval() const
 {
     static const int DEFAULT_INTERVAL = 5 * 60; // seconds (5m)

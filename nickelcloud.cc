@@ -159,7 +159,7 @@ void NickelCloudWatcher::StartSync(const QString& source, const QString& dest)
     QObject::connect(rclone, SIGNAL(finished(int, QProcess::ExitStatus)), rclone, SLOT(deleteLater()));
 
     QStringList args;
-    args << "copy"
+    args << Config.GetMode()
          << source << dest
          << "--config" << RCLONE_CONF
          << "--ca-cert" << CA_CERT
