@@ -126,49 +126,21 @@ void NickelCloudWatcher::Sync()
 
 void NickelCloudWatcher::ReadConfig()
 {
-    // config file is formatted as source=destination pairs, one per line
-    // skip blank lines and lines starting with '#'
-
     SyncQueue.clear();
 
-    QFile file(NICKELCLOUD_CONF);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    Config.Load(NICKELCLOUD_CONF);
+
+    for (const auto& pair : Config.Sources())
     {
-        return;
-    }
-
-    while (!file.atEnd())
-    {
-        auto line = QString::fromUtf8(file.readLine()).trimmed();
-        if (line.isEmpty() || line.startsWith('#'))
-        {
-            continue;
-        }
-
-        auto equals = line.indexOf('=');
-        if (equals < 0)
-        {
-            nh_log("NickelCloud: ignoring line without '=': %s", qPrintable(line));
-            continue;
-        }
-
-        auto source = line.left(equals).trimmed();
-        auto destination = line.mid(equals + 1).trimmed();
-        if (source.isEmpty() || destination.isEmpty())
-        {
-            nh_log("NickelCloud: ignoring malformed line: %s", qPrintable(line));
-            continue;
-        }
-
         // prefix all paths with /mnt/onboard, prevent writing outside this directory
-        destination = QDir::cleanPath(QString(ONBOARD_DIR "/") + destination);
+        auto destination = QDir::cleanPath(QString(ONBOARD_DIR "/") + pair.dest);
         if (destination != ONBOARD_DIR && !destination.startsWith(ONBOARD_DIR "/"))
         {
-            nh_log("NickelCloud: ignoring out-of-bounds destination: %s", qPrintable(destination));
+            nh_log("NickelCloud: ignoring out-of-bounds destination: %s", qPrintable(pair.dest));
             continue;
         }
 
-        SyncQueue.enqueue({source, destination});
+        SyncQueue.enqueue({pair.source, destination});
     }
 }
 

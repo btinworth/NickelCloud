@@ -1,16 +1,11 @@
 #pragma once
 
+#include "config.h"
 #include <QObject>
 #include <QProcess>
 #include <QQueue>
 #include <QString>
 #include <QTimer>
-
-struct SyncPair
-{
-    QString source;
-    QString dest;
-};
 
 class NickelCloudWatcher : public QObject
 {
@@ -33,6 +28,7 @@ private:
     void StartSync(const QString& source, const QString& dest);
     void SyncNext();
 
+    NickelCloudConfig Config;
     QQueue<SyncPair> SyncQueue;
     bool AnyTransferred = false;
     QTimer SyncTimer;

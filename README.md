@@ -14,6 +14,7 @@ Pull books from cloud storage to your Kobo library using [rclone](https://rclone
    For example, the following would copy the contents of the `Books` directory in Google Drive to the `GDriveBooks` directory
 
    ```conf
+   [sources]
    GoogleDrive:Books = GDriveBooks
    ```
 

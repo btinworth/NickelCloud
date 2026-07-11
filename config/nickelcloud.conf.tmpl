@@ -1,6 +1,9 @@
-# List cloud sources to sync, one per line, in the format:
-#     remote:folder = /local/destination
-# The 'remote' must match a remote configured in rclone.conf
-# For example:
-#     OneDrive:eBooks = Books
-# The 'OneDrive' is defined in rclone.conf, the contents of the eBooks directory will be copied to /mnt/onboard/Books
+# NickelCloud configuration file
+# The '#' character denotes comments, anything following it will be ignored
+
+[sources]
+# List of cloud sources to sync, one per line, in the format:
+#   remote:folder = /local/destination
+# The 'remote' must be configured in the rclone.conf file
+# For example, to copy the eBooks directory from OneDrive to the Books directory on the Kobo use:
+#   OneDrive:eBooks = Books
