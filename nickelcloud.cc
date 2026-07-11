@@ -82,6 +82,11 @@ void NickelCloudWatcher::OnSyncFinished(int exitCode, QProcess::ExitStatus statu
     }
     else if (exitCode == 9)
     {
+        if (Config.GetMode() == "sync")
+        {
+            // in sync mode rclone returns 9 when files were only deleted
+            AnyTransferred = true;
+        }
         nh_log("NickelCloud: nothing new for %s", qPrintable(source));
     }
     else
