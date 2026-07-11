@@ -199,7 +199,9 @@ void NickelCloudWatcher::StartSync(const QString& source, const QString& dest)
          << "--error-on-no-transfer"
          << "--stats" << "0"
          << "--log-level" << "INFO"
-         << "--transfers" << QString::number(Config.GetTransfers());
+         << "--transfers" << QString::number(Config.GetTransfers())
+         << Config.GetExtraArgs();
+
     rclone->start(RCLONE_BIN, args);
 }
 

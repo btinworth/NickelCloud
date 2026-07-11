@@ -3,6 +3,7 @@
 #include <QHash>
 #include <QQueue>
 #include <QString>
+#include <QStringList>
 
 struct SyncPair
 {
@@ -18,6 +19,7 @@ public:
     QString GetMode() const;
     int GetInterval() const;
     int GetTransfers() const;
+    QStringList GetExtraArgs() const;
     bool GetLogEnabled() const;
 
     const QQueue<SyncPair>& GetSources() const;

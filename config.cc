@@ -57,7 +57,7 @@ void NickelCloudConfig::Load(const QString& path)
 
         auto key = line.left(equals).trimmed();
         auto value = line.mid(equals + 1).trimmed();
-        if (key.isEmpty() || value.isEmpty())
+        if (key.isEmpty())
         {
             nh_log("NickelCloud: ignoring malformed line: %s", qPrintable(line));
             continue;
@@ -67,9 +67,16 @@ void NickelCloudConfig::Load(const QString& path)
         {
             General.insert(key, value);
         }
-        else
+        else if (section == Section::Sources)
         {
-            Sources.enqueue({key, value});
+            if (value.isEmpty())
+            {
+                nh_log("NickelCloud: ignoring malformed line: %s", qPrintable(line));
+            }
+            else
+            {
+                Sources.enqueue({key, value});
+            }
         }
     }
 }
@@ -114,6 +121,17 @@ int NickelCloudConfig::GetTransfers() const
 
     nh_log("NickelCloud: ignoring invalid transfers value '%d', defaulting to %d", transfers, DEFAULT_TRANSFERS);
     return DEFAULT_TRANSFERS;
+}
+
+QStringList NickelCloudConfig::GetExtraArgs() const
+{
+    auto extraArgs = GetString("extra_args");
+    if (!extraArgs.isEmpty())
+    {
+        return extraArgs.split(' ', QString::SkipEmptyParts);
+    }
+
+    return QStringList();
 }
 
 bool NickelCloudConfig::GetLogEnabled() const

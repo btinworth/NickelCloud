@@ -6,6 +6,7 @@ mode = copy # 'copy' to only update or add, or 'sync' to also delete local files
 interval = 300 # frequency to check (in seconds), set to 0 to disable
 transfers = 1 # number of concurrent file transfers
 log = false # write a timestamped log file to /mnt/onboard after each sync cycle
+extra_args = # extra arguments passed through to rclone as-is (space separated, no validation)
 
 [sources]
 # List of cloud sources to sync, one per line, in the format:
