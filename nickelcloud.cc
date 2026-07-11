@@ -298,7 +298,7 @@ static int NickelCloudInit()
 
 static struct nh_info NickelCloud = {
     .name = "NickelCloud",
-    .desc = "Sync books from the cloud",
+    .desc = "Pull books from cloud storage into your library using rclone",
     .uninstall_flag = CONFIG_DIR "/uninstall",
 };
 
