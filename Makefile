@@ -1,5 +1,7 @@
 include NickelHook/NickelHook.mk
 
+RCLONE_VERSION ?= 1.74.4
+
 override LIBRARY  := libnickelcloud.so
 override SOURCES  += nickelcloud.cc config.cc utils.cc
 override MOCS     += nickelcloud.h
@@ -18,11 +20,12 @@ koboroot: rclone-armv7 cacert.pem
 
 rclone-armv7:
 	@set -e; \
-	version="$$(curl -fsSL https://downloads.rclone.org/version.txt | sed 's/rclone v//')"; \
+	version="$(RCLONE_VERSION)"; \
 	zip="rclone-v$$version-linux-arm-v7.zip"; \
 	url="https://github.com/rclone/rclone/releases/download/v$$version"; \
 	curl -fsSL "$$url/$$zip" -o "$$zip"; \
-	exp="$$(curl -fsSL "$$url/SHA256SUMS" | grep "$$zip" | awk '{print $$1}')"; \
+	exp="$$(curl -fsSL "$$url/SHA256SUMS" | awk -v z="$$zip" '$$2 == z {print $$1}')"; \
+	[ -n "$$exp" ] || { echo "missing checksum for $$zip"; rm -f "$$zip"; exit 1; }; \
 	act="$$(sha256sum "$$zip" | awk '{print $$1}')"; \
 	[ "$$exp" = "$$act" ] || { echo "rclone checksum mismatch: $$exp != $$act"; rm -f "$$zip"; exit 1; }; \
 	unzip -p "$$zip" "rclone-v$$version-linux-arm-v7/rclone" > rclone-armv7; \
