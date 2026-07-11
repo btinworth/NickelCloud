@@ -1,6 +1,7 @@
 name: Build
 
 on:
+  workflow_call:
   push:
   pull_request:
   workflow_dispatch:
@@ -27,5 +28,6 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
+          name: KoboRoot
           path: KoboRoot.tgz
           archive: false
