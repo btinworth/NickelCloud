@@ -41,13 +41,16 @@ NickelCloudWatcher::NickelCloudWatcher()
 
     Config.Load(NICKELCLOUD_CONF);
 
-    SyncTimer.setInterval(Config.GetInterval() * 1000);
+    UpdateSyncTimer();
     QObject::connect(&SyncTimer, SIGNAL(timeout()), this, SLOT(Sync()));
 }
 
 void NickelCloudWatcher::OnNetworkConnected()
 {
-    SyncTimer.start();
+    if (Config.GetInterval() > 0)
+    {
+        SyncTimer.start();
+    }
     Sync();
 }
 
@@ -145,7 +148,7 @@ void NickelCloudWatcher::ReadConfig()
 
     Config.Load(NICKELCLOUD_CONF);
 
-    SyncTimer.setInterval(Config.GetInterval() * 1000);
+    UpdateSyncTimer();
 
     for (const auto& pair : Config.GetSources())
     {
@@ -159,6 +162,19 @@ void NickelCloudWatcher::ReadConfig()
 
         SyncQueue.enqueue({pair.source, destination});
     }
+}
+
+void NickelCloudWatcher::UpdateSyncTimer()
+{
+    auto interval = Config.GetInterval();
+    if (interval <= 0)
+    {
+        // an interval of 0 disables periodic re-checking entirely
+        SyncTimer.stop();
+        return;
+    }
+
+    SyncTimer.setInterval(interval * 1000);
 }
 
 void NickelCloudWatcher::StartSync(const QString& source, const QString& dest)

@@ -91,7 +91,15 @@ QString NickelCloudConfig::GetMode() const
 int NickelCloudConfig::GetInterval() const
 {
     static const int DEFAULT_INTERVAL = 5 * 60; // seconds (5m)
-    return GetInt("interval", DEFAULT_INTERVAL);
+
+    auto interval = GetInt("interval", DEFAULT_INTERVAL);
+    if (interval < 0)
+    {
+        nh_log("NickelCloud: ignoring negative interval '%d', defaulting to %d", interval, DEFAULT_INTERVAL);
+        return DEFAULT_INTERVAL;
+    }
+
+    return interval;
 }
 
 int NickelCloudConfig::GetTransfers() const

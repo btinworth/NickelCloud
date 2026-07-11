@@ -26,6 +26,7 @@ private slots:
 
 private:
     void ReadConfig();
+    void UpdateSyncTimer();
     void StartSync(const QString& source, const QString& dest);
     void SyncNext();
 
