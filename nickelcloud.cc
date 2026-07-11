@@ -63,6 +63,14 @@ void NickelCloudWatcher::OnSyncFinished(int exitCode, QProcess::ExitStatus statu
 {
     auto source = SyncQueue.head().source;
 
+    auto* rclone = qobject_cast<QProcess*>(sender());
+    if (rclone != nullptr)
+    {
+        ReadSyncOutput(rclone);
+    }
+
+    FlushSyncOutput();
+
     if (status != QProcess::NormalExit)
     {
         nh_log("NickelCloud: rclone crashed for %s", qPrintable(source));
@@ -93,8 +101,32 @@ void NickelCloudWatcher::OnSyncOutput()
         return;
     }
 
-    auto lines = QString::fromUtf8(rclone->readAllStandardOutput()).split('\n', QString::SkipEmptyParts);
-    for (const auto& line : lines)
+    ReadSyncOutput(rclone);
+}
+
+void NickelCloudWatcher::ReadSyncOutput(QProcess* rclone)
+{
+    PendingOutput += rclone->readAllStandardOutput();
+
+    int newline;
+    while ((newline = PendingOutput.indexOf('\n')) >= 0)
+    {
+        auto line = QString::fromUtf8(PendingOutput.left(newline)).trimmed();
+        PendingOutput.remove(0, newline + 1);
+
+        if (!line.isEmpty())
+        {
+            nh_log("NickelCloud: %s", qPrintable(line));
+        }
+    }
+}
+
+void NickelCloudWatcher::FlushSyncOutput()
+{
+    auto line = QString::fromUtf8(PendingOutput).trimmed();
+    PendingOutput.clear();
+
+    if (!line.isEmpty())
     {
         nh_log("NickelCloud: %s", qPrintable(line));
     }
@@ -115,6 +147,8 @@ void NickelCloudWatcher::OnSyncError(QProcess::ProcessError error)
     {
         rclone->deleteLater();
     }
+
+    FlushSyncOutput();
 
     SyncQueue.dequeue();
     SyncNext();

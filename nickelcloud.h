@@ -1,6 +1,7 @@
 #pragma once
 
 #include "config.h"
+#include <QByteArray>
 #include <QObject>
 #include <QProcess>
 #include <QQueue>
@@ -29,9 +30,12 @@ private:
     void UpdateSyncTimer();
     void StartSync(const QString& source, const QString& dest);
     void SyncNext();
+    void ReadSyncOutput(QProcess* rclone);
+    void FlushSyncOutput();
 
     NickelCloudConfig Config;
     QQueue<SyncPair> SyncQueue;
+    QByteArray PendingOutput;
     bool AnyTransferred = false;
     QTimer SyncTimer;
 };
