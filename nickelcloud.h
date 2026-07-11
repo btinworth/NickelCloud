@@ -26,6 +26,7 @@ private slots:
     void OnSyncOutput();
 
 private:
+    static void CreateConfig(const char* filePath, const char* tmplFilePath);
     void ReadConfig();
     void UpdateSyncTimer();
     void ScheduleNextSync();

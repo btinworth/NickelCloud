@@ -10,6 +10,7 @@ void NickelCloudConfig::Load(const QString& path)
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
+        nh_log("NickelCloud: could not open config '%s': %s", qPrintable(path), qPrintable(file.errorString()));
         return;
     }
 

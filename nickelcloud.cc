@@ -28,17 +28,8 @@ static const char* CACHE_DIR = CONFIG_DIR "/cache";
 
 NickelCloudWatcher::NickelCloudWatcher()
 {
-    QDir().mkpath(CONFIG_DIR);
-    if (!QFile::exists(RCLONE_CONF))
-    {
-        QFile::copy(RCLONE_TMPL, RCLONE_CONF);
-        nh_log("NickelCloud: created rclone.conf from template");
-    }
-    if (!QFile::exists(NICKELCLOUD_CONF))
-    {
-        QFile::copy(NICKELCLOUD_TMPL, NICKELCLOUD_CONF);
-        nh_log("NickelCloud: created nickelcloud.conf from template");
-    }
+    CreateConfig(RCLONE_CONF, RCLONE_TMPL);
+    CreateConfig(NICKELCLOUD_CONF, NICKELCLOUD_TMPL);
 
     Config.Load(NICKELCLOUD_CONF);
 
@@ -181,6 +172,30 @@ void NickelCloudWatcher::Sync()
     SyncNext();
 }
 
+void NickelCloudWatcher::CreateConfig(const char* filePath, const char* tmplFilePath)
+{
+    if (!QDir().mkpath(CONFIG_DIR))
+    {
+        nh_log("NickelCloud: failed to create config directory: %s", CONFIG_DIR);
+        return;
+    }
+
+    if (QFile::exists(filePath))
+    {
+        nh_log("NickelCloud: Config file exists: %s", filePath);
+        return;
+    }
+
+    if (QFile::copy(tmplFilePath, filePath))
+    {
+        nh_log("NickelCloud: created config from template: %s", filePath);
+    }
+    else
+    {
+        nh_log("NickelCloud: failed to create config from template: %s -> %s", tmplFilePath, filePath);
+    }
+}
+
 void NickelCloudWatcher::ReadConfig()
 {
     SyncQueue.clear();
@@ -226,7 +241,15 @@ void NickelCloudWatcher::ScheduleNextSync()
 
 void NickelCloudWatcher::StartSync(const QString& source, const QString& dest)
 {
-    QDir().mkpath(dest);
+    if (!QDir().mkpath(dest))
+    {
+        AnyFailed = true;
+        nh_log("NickelCloud: failed to create destination directory for %s: %s", qPrintable(source), qPrintable(dest));
+
+        SyncQueue.dequeue();
+        SyncNext();
+        return;
+    }
 
     nh_log("NickelCloud: syncing %s -> %s", qPrintable(source), qPrintable(dest));
 
