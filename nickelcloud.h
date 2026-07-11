@@ -28,6 +28,7 @@ private slots:
 private:
     void ReadConfig();
     void UpdateSyncTimer();
+    void ScheduleNextSync();
     void StartSync(const QString& source, const QString& dest);
     void SyncNext();
     void ReadSyncOutput(QProcess* rclone);

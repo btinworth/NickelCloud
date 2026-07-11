@@ -48,10 +48,6 @@ NickelCloudWatcher::NickelCloudWatcher()
 
 void NickelCloudWatcher::OnNetworkConnected()
 {
-    if (Config.GetInterval() > 0)
-    {
-        SyncTimer.start();
-    }
     Sync();
 }
 
@@ -174,6 +170,7 @@ void NickelCloudWatcher::Sync()
     if (SyncQueue.isEmpty())
     {
         nh_log("NickelCloud: no sources configured");
+        ScheduleNextSync();
         return;
     }
 
@@ -215,7 +212,16 @@ void NickelCloudWatcher::UpdateSyncTimer()
         return;
     }
 
+    SyncTimer.setSingleShot(true);
     SyncTimer.setInterval(interval * 1000);
+}
+
+void NickelCloudWatcher::ScheduleNextSync()
+{
+    if (Config.GetInterval() > 0)
+    {
+        SyncTimer.start();
+    }
 }
 
 void NickelCloudWatcher::StartSync(const QString& source, const QString& dest)
@@ -259,15 +265,14 @@ void NickelCloudWatcher::SyncNext()
         {
             // files have been modified, trigger a library scan
             auto* fss = N3FSSyncManagerInstance();
-            if (fss == nullptr)
+            if (fss != nullptr)
             {
-                return;
+                QStringList path(ONBOARD_DIR);
+                N3FSSyncManagerSync(fss, &path);
             }
-
-            QStringList path(ONBOARD_DIR);
-            N3FSSyncManagerSync(fss, &path);
         }
 
+        ScheduleNextSync();
         return;
     }
 
