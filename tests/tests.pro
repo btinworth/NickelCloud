@@ -5,16 +5,22 @@ CONFIG += testcase console c++11
 CONFIG -= app_bundle
 
 TEMPLATE = app
-TARGET = config_test
+TARGET = tests
 
 INCLUDEPATH += .. ../NickelHook
 
 QMAKE_CXXFLAGS += -Wno-deprecated-declarations
 
 SOURCES += \
+    main.cc \
     config_test.cc \
+    utils_test.cc \
     nh_log_stub.cc \
-    ../config.cc
+    ../config.cc \
+    ../utils.cc
 
 HEADERS += \
-    ../config.h
+    config_test.h \
+    utils_test.h \
+    ../config.h \
+    ../utils.h

@@ -17,9 +17,10 @@ compile_commands.json
 /tests/Makefile
 /tests/*.o
 /tests/*.moc
+/tests/moc_*.cpp
 /tests/.qmake.stash
 /tests/moc_predefs.h
 /tests/target_wrapper.sh
-/tests/config_test
+/tests/tests
 
 .DS_Store

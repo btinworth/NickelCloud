@@ -1,0 +1,45 @@
+#pragma once
+
+#include "../config.h"
+#include <QObject>
+
+class ConfigTest : public QObject
+{
+    Q_OBJECT
+
+private slots:
+    void sources_parsesBasicPairs();
+    void sources_ignoresEmptyDestination();
+    void sources_ignoredOutsideSection();
+
+    void comments_stripFullLine();
+    void comments_stripTrailing();
+
+    void sections_areCaseInsensitive();
+    void sections_unknownIsIgnored();
+
+    void general_allowsEmptyValue();
+
+    void mode_defaultsToCopy();
+    void mode_acceptsSync();
+    void mode_rejectsInvalidValue();
+
+    void interval_defaultsToFiveMinutes();
+    void interval_negativeFallsBackToDefault();
+    void interval_zeroIsPreserved();
+
+    void transfers_defaultsToOne();
+    void transfers_zeroFallsBackToDefault();
+    void transfers_negativeFallsBackToDefault();
+
+    void extraArgs_emptyByDefault();
+    void extraArgs_splitsOnSpaces();
+
+    void logEnabled_defaultsToFalse();
+    void logEnabled_acceptsTruthyValues();
+    void logEnabled_acceptsFalsyValues();
+    void logEnabled_unrecognizedValueFallsBackToDefault();
+
+private:
+    static NickelCloudConfig LoadConfig(const QString& contents);
+};
