@@ -4,6 +4,7 @@
 
 void NickelCloudConfig::Load(const QString& path)
 {
+    General.clear();
     SourceList.clear();
 
     QFile file(path);
@@ -12,7 +13,7 @@ void NickelCloudConfig::Load(const QString& path)
         return;
     }
 
-    bool inSources = false;
+    auto section = Section::None;
 
     while (!file.atEnd())
     {
@@ -25,15 +26,23 @@ void NickelCloudConfig::Load(const QString& path)
         if (line.startsWith('[') && line.endsWith(']'))
         {
             auto name = line.mid(1, line.length() - 2).trimmed().toLower();
-            inSources = (name == "sources");
-            if (!inSources)
+            if (name == "general")
+            {
+                section = Section::General;
+            }
+            else if (name == "sources")
+            {
+                section = Section::Sources;
+            }
+            else
             {
                 nh_log("NickelCloud: ignoring unknown config section: %s", qPrintable(line));
+                section = Section::None;
             }
             continue;
         }
 
-        if (!inSources)
+        if (section == Section::None)
         {
             nh_log("NickelCloud: ignoring line outside of a section: %s", qPrintable(line));
             continue;
@@ -46,16 +55,55 @@ void NickelCloudConfig::Load(const QString& path)
             continue;
         }
 
-        auto source = line.left(equals).trimmed();
-        auto destination = line.mid(equals + 1).trimmed();
-        if (source.isEmpty() || destination.isEmpty())
+        auto key = line.left(equals).trimmed();
+        auto value = line.mid(equals + 1).trimmed();
+        if (key.isEmpty() || value.isEmpty())
         {
             nh_log("NickelCloud: ignoring malformed line: %s", qPrintable(line));
             continue;
         }
 
-        SourceList.enqueue({source, destination});
+        if (section == Section::General)
+        {
+            General.insert(key, value);
+        }
+        else
+        {
+            SourceList.enqueue({key, value});
+        }
     }
+}
+
+QString NickelCloudConfig::GetString(const QString& key, const QString& defaultValue) const
+{
+    return General.value(key, defaultValue);
+}
+
+int NickelCloudConfig::GetInt(const QString& key, int defaultValue) const
+{
+    bool success = false;
+    auto value = General.value(key).toInt(&success);
+    return success ? value : defaultValue;
+}
+
+bool NickelCloudConfig::GetBool(const QString& key, bool defaultValue) const
+{
+    if (!General.contains(key))
+    {
+        return defaultValue;
+    }
+
+    auto value = General.value(key).trimmed().toLower();
+    if (value == "true" || value == "1" || value == "yes")
+    {
+        return true;
+    }
+    if (value == "false" || value == "0" || value == "no")
+    {
+        return false;
+    }
+
+    return defaultValue;
 }
 
 QString NickelCloudConfig::StripComment(const QString& line)
