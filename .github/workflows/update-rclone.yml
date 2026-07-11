@@ -1,0 +1,67 @@
+name: Update rclone
+
+on:
+  schedule:
+    - cron: 0 0 * * 0
+  workflow_dispatch:
+
+concurrency:
+  group: update-rclone
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    name: Update rclone
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Get latest rclone version
+        id: version
+        run: |
+          latest_version="$(curl -fsSL https://downloads.rclone.org/version.txt | sed 's/^rclone v//' | xargs)"
+          current_version="$(awk -F'= *' '/^RCLONE_VERSION \?=/{print $2}' Makefile | xargs)"
+          : "${latest_version:?Could not parse latest rclone version from version.txt}"
+          : "${current_version:?Could not read pinned rclone version from Makefile}"
+
+          echo "Latest rclone version: ${latest_version}"
+          echo "Current rclone version: ${current_version}"
+
+          echo "latest=${latest_version}" >> "$GITHUB_OUTPUT"
+          echo "current=${current_version}" >> "$GITHUB_OUTPUT"
+
+      - name: Update Makefile
+        if: steps.version.outputs.latest != steps.version.outputs.current
+        run: |
+          sed -i -E "s/^RCLONE_VERSION \?= .*/RCLONE_VERSION ?= ${{ steps.version.outputs.latest }}/" Makefile
+
+      - name: Commit and create pull request
+        if: steps.version.outputs.latest != steps.version.outputs.current
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          branch_name="update-rclone"
+
+          gh pr list --head "${branch_name}" --state open --json number --jq '.[].number' | while read -r pr; do
+            [[ -n "${pr}" ]] && gh pr close "${pr}"
+          done
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git checkout -B "${branch_name}"
+          git add Makefile
+
+          git commit -m "Update rclone to ${{ steps.version.outputs.latest }}"
+          git push --force-with-lease --set-upstream origin "${branch_name}"
+
+          gh pr create \
+            --head "${branch_name}" \
+            --base "${{ github.ref_name }}" \
+            --fill
