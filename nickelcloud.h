@@ -38,5 +38,6 @@ private:
     QQueue<SyncPair> SyncQueue;
     QByteArray PendingOutput;
     bool AnyTransferred = false;
+    bool AnyFailed = false;
     QTimer SyncTimer;
 };

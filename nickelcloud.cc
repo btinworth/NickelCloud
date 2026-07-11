@@ -73,6 +73,7 @@ void NickelCloudWatcher::OnSyncFinished(int exitCode, QProcess::ExitStatus statu
 
     if (status != QProcess::NormalExit)
     {
+        AnyFailed = true;
         nh_log("NickelCloud: rclone crashed for %s", qPrintable(source));
     }
     else if (exitCode == 0)
@@ -81,6 +82,7 @@ void NickelCloudWatcher::OnSyncFinished(int exitCode, QProcess::ExitStatus statu
     }
     else
     {
+        AnyFailed = true;
         nh_log("NickelCloud: rclone failed for %s (exit %d)", qPrintable(source), exitCode);
     }
 
@@ -143,6 +145,7 @@ void NickelCloudWatcher::OnSyncError(QProcess::ProcessError error)
         return;
     }
 
+    AnyFailed = true;
     nh_log("NickelCloud: rclone failed to start for %s", qPrintable(SyncQueue.head().source));
 
     auto* rclone = qobject_cast<QProcess*>(sender());
@@ -174,6 +177,7 @@ void NickelCloudWatcher::Sync()
     }
 
     AnyTransferred = false;
+    AnyFailed = false;
 
     nh_log("NickelCloud: pulling %d source(s) from cloud", SyncQueue.size());
     SyncNext();
@@ -246,7 +250,7 @@ void NickelCloudWatcher::SyncNext()
 {
     if (SyncQueue.isEmpty())
     {
-        if (Config.GetLogEnabled())
+        if (Config.GetLogEnabled() && (AnyTransferred || AnyFailed))
         {
             nh_dump_log();
         }
