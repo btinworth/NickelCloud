@@ -12,13 +12,14 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout (with NickelHook submodule)
+      - name: Checkout
         uses: actions/checkout@v7
         with:
           submodules: recursive
 
-      - name: Build with NickelTC
+      - name: Build
         run: |
           docker run --rm \
             -v "$PWD:$PWD" -w "$PWD" \
@@ -26,7 +27,7 @@ jobs:
             ghcr.io/pgaskin/nickeltc:1 \
             sh -c 'make && make koboroot'
 
-      - name: Upload KoboRoot.tgz
+      - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
           path: KoboRoot.tgz
