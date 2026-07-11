@@ -22,7 +22,6 @@ static const char* CA_CERT = INSTALL_DIR "/cacert.pem";
 static const char* RCLONE_TMPL = INSTALL_DIR "/rclone.conf.tmpl";
 static const char* NICKELCLOUD_TMPL = INSTALL_DIR "/nickelcloud.conf.tmpl";
 static const char* RCLONE_CONF = CONFIG_DIR "/rclone.conf";
-static const char* RCLONE_LOG = CONFIG_DIR "/rclone.log";
 static const char* NICKELCLOUD_CONF = CONFIG_DIR "/nickelcloud.conf";
 static const char* CACHE_DIR = CONFIG_DIR "/cache";
 
@@ -81,6 +80,21 @@ void NickelCloudWatcher::OnSyncFinished(int exitCode, QProcess::ExitStatus statu
 
     SyncQueue.dequeue();
     SyncNext();
+}
+
+void NickelCloudWatcher::OnSyncOutput()
+{
+    auto* rclone = qobject_cast<QProcess*>(sender());
+    if (rclone == nullptr)
+    {
+        return;
+    }
+
+    auto lines = QString::fromUtf8(rclone->readAllStandardOutput()).split('\n', QString::SkipEmptyParts);
+    for (const auto& line : lines)
+    {
+        nh_log("NickelCloud: %s", qPrintable(line));
+    }
 }
 
 void NickelCloudWatcher::OnSyncError(QProcess::ProcessError error)
@@ -154,6 +168,8 @@ void NickelCloudWatcher::StartSync(const QString& source, const QString& dest)
     nh_log("NickelCloud: syncing %s -> %s", qPrintable(source), qPrintable(dest));
 
     auto* rclone = new QProcess(this);
+    rclone->setProcessChannelMode(QProcess::MergedChannels);
+    QObject::connect(rclone, SIGNAL(readyReadStandardOutput()), this, SLOT(OnSyncOutput()));
     QObject::connect(rclone, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(OnSyncFinished(int, QProcess::ExitStatus)));
     QObject::connect(rclone, SIGNAL(error(QProcess::ProcessError)), this, SLOT(OnSyncError(QProcess::ProcessError)));
     QObject::connect(rclone, SIGNAL(finished(int, QProcess::ExitStatus)), rclone, SLOT(deleteLater()));
@@ -167,7 +183,6 @@ void NickelCloudWatcher::StartSync(const QString& source, const QString& dest)
          << "--transfers" << "1"
          << "--stats" << "0"
          << "--error-on-no-transfer"
-         << "--log-file" << RCLONE_LOG
          << "--log-level" << "INFO";
     rclone->start(RCLONE_BIN, args);
 }
@@ -177,7 +192,10 @@ void NickelCloudWatcher::SyncNext()
 {
     if (SyncQueue.isEmpty())
     {
-        nh_dump_log();
+        if (Config.GetLogEnabled())
+        {
+            nh_dump_log();
+        }
 
         if (AnyTransferred)
         {

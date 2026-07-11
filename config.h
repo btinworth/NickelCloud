@@ -17,6 +17,7 @@ public:
 
     QString GetMode() const;
     int GetInterval() const;
+    bool GetLogEnabled() const;
 
     const QQueue<SyncPair>& GetSources() const;
 

@@ -22,6 +22,7 @@ public slots:
 
 private slots:
     void Sync();
+    void OnSyncOutput();
 
 private:
     void ReadConfig();

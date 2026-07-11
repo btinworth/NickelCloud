@@ -94,6 +94,11 @@ int NickelCloudConfig::GetInterval() const
     return GetInt("interval", DEFAULT_INTERVAL);
 }
 
+bool NickelCloudConfig::GetLogEnabled() const
+{
+    return GetBool("log", false);
+}
+
 const QQueue<SyncPair>& NickelCloudConfig::GetSources() const
 {
     return Sources;
