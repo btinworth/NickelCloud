@@ -5,7 +5,7 @@
 void NickelCloudConfig::Load(const QString& path)
 {
     General.clear();
-    SourceList.clear();
+    Sources.clear();
 
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -69,9 +69,20 @@ void NickelCloudConfig::Load(const QString& path)
         }
         else
         {
-            SourceList.enqueue({key, value});
+            Sources.enqueue({key, value});
         }
     }
+}
+
+int NickelCloudConfig::GetInterval() const
+{
+    static const int DEFAULT_INTERVAL = 5 * 60; // seconds (5m)
+    return GetInt("interval", DEFAULT_INTERVAL);
+}
+
+const QQueue<SyncPair>& NickelCloudConfig::GetSources() const
+{
+    return Sources;
 }
 
 QString NickelCloudConfig::GetString(const QString& key, const QString& defaultValue) const

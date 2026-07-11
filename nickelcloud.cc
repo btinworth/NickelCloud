@@ -25,7 +25,6 @@ static const char* RCLONE_CONF = CONFIG_DIR "/rclone.conf";
 static const char* RCLONE_LOG = CONFIG_DIR "/rclone.log";
 static const char* NICKELCLOUD_CONF = CONFIG_DIR "/nickelcloud.conf";
 static const char* CACHE_DIR = CONFIG_DIR "/cache";
-static const int SYNC_INTERVAL = 5 * 60 * 1000; // rescan frequency (5m)
 
 NickelCloudWatcher::NickelCloudWatcher()
 {
@@ -41,7 +40,9 @@ NickelCloudWatcher::NickelCloudWatcher()
         nh_log("NickelCloud: created nickelcloud.conf from template");
     }
 
-    SyncTimer.setInterval(SYNC_INTERVAL);
+    Config.Load(NICKELCLOUD_CONF);
+
+    SyncTimer.setInterval(Config.GetInterval() * 1000);
     QObject::connect(&SyncTimer, SIGNAL(timeout()), this, SLOT(Sync()));
 }
 
@@ -130,7 +131,9 @@ void NickelCloudWatcher::ReadConfig()
 
     Config.Load(NICKELCLOUD_CONF);
 
-    for (const auto& pair : Config.Sources())
+    SyncTimer.setInterval(Config.GetInterval() * 1000);
+
+    for (const auto& pair : Config.GetSources())
     {
         // prefix all paths with /mnt/onboard, prevent writing outside this directory
         auto destination = QDir::cleanPath(QString(ONBOARD_DIR "/") + pair.dest);

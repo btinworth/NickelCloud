@@ -15,11 +15,9 @@ class NickelCloudConfig
 public:
     void Load(const QString& path);
 
-    QString GetString(const QString& key, const QString& defaultValue = QString()) const;
-    int GetInt(const QString& key, int defaultValue = 0) const;
-    bool GetBool(const QString& key, bool defaultValue = false) const;
+    int GetInterval() const;
 
-    const QQueue<SyncPair>& Sources() const { return SourceList; }
+    const QQueue<SyncPair>& GetSources() const;
 
 private:
     enum class Section
@@ -31,6 +29,10 @@ private:
 
     static QString StripComment(const QString& line);
 
+    QString GetString(const QString& key, const QString& defaultValue = QString()) const;
+    int GetInt(const QString& key, int defaultValue = 0) const;
+    bool GetBool(const QString& key, bool defaultValue = false) const;
+
     QHash<QString, QString> General;
-    QQueue<SyncPair> SourceList;
+    QQueue<SyncPair> Sources;
 };
