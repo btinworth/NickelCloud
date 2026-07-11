@@ -1,24 +1,16 @@
-# build output (KoboRoot.tgz from the C mod and from sh/makeKoboRoot.sh)
+# build output
 KoboRoot.tgz
 
-# NickelCloud build artifacts
+# build artifacts
 /libnickelcloud.so
 /*.o
 /*.moc
 compile_commands.json
 .cache/
 
-# downloaded rclone binary + CA bundle
+# downloaded artifacts
 /rclone-armv7
 /rclone-*.zip
 /cacert.pem
-
-# shell version binaries fetched by sh/makeKoboRoot.sh
-sh/src/usr/local/koborclone/rclone
-sh/src/usr/local/koborclone/rclone-*.zip
-sh/src/usr/local/koborclone/cacert.pem
-
-# user config
-koborclone.conf
 
 .DS_Store
