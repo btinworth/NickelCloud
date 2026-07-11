@@ -27,11 +27,7 @@ static const char* NICKELCLOUD_CONF = CONFIG_DIR "/nickelcloud.conf";
 static const char* CACHE_DIR = CONFIG_DIR "/cache";
 static const int SYNC_INTERVAL = 5 * 60 * 1000; // rescan frequency (5m)
 
-static QQueue<SyncPair> SyncQueue; // remaining sources
-static bool AnyTransferred = false; // true if anything was downloaded
-static bool SyncInProgress = false; // true whilst syncing
-
-static void TriggerRescan()
+void NickelCloudWatcher::TriggerRescan()
 {
     auto* fss = N3FSSyncManagerInstance();
     if (fss == nullptr)
@@ -43,7 +39,7 @@ static void TriggerRescan()
     N3FSSyncManagerSync(fss, &path);
 }
 
-static void ReadConfig()
+void NickelCloudWatcher::ReadConfig()
 {
     // config file is formatted as source=destination pairs, one per line
     // skip blank lines and lines starting with '#'
@@ -93,6 +89,8 @@ static void ReadConfig()
 
 NickelCloudWatcher::NickelCloudWatcher()
 {
+    InitConfig();
+
     SyncTimer.setInterval(SYNC_INTERVAL);
     QObject::connect(&SyncTimer, SIGNAL(timeout()), this, SLOT(Sync()));
 }
@@ -222,7 +220,7 @@ void NickelCloudWatcher::OnSyncError(QProcess::ProcessError error)
     SyncNext();
 }
 
-static void InitConfig()
+void NickelCloudWatcher::InitConfig()
 {
     QDir().mkpath(CONFIG_DIR);
     if (!QFile::exists(RCLONE_CONF))
@@ -239,8 +237,6 @@ static void InitConfig()
 
 static int NickelCloudInit()
 {
-    InitConfig();
-
     auto* wm = WirelessManagerInstance != nullptr ? WirelessManagerInstance() : nullptr;
     if (wm == nullptr)
     {

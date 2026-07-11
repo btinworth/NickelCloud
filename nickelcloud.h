@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QProcess>
+#include <QQueue>
 #include <QString>
 #include <QTimer>
 
@@ -28,8 +29,14 @@ private slots:
     void Sync();
 
 private:
+    void ReadConfig();
     void StartSync(const QString& source, const QString& dest);
     void SyncNext();
+    static void TriggerRescan();
+    static void InitConfig();
 
+    QQueue<SyncPair> SyncQueue;
+    bool AnyTransferred = false;
+    bool SyncInProgress = false;
     QTimer SyncTimer;
 };
