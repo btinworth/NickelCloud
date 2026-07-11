@@ -180,10 +180,10 @@ void NickelCloudWatcher::StartSync(const QString& source, const QString& dest)
          << "--config" << RCLONE_CONF
          << "--ca-cert" << CA_CERT
          << "--cache-dir" << CACHE_DIR
-         << "--transfers" << "1"
-         << "--stats" << "0"
          << "--error-on-no-transfer"
-         << "--log-level" << "INFO";
+         << "--stats" << "0"
+         << "--log-level" << "INFO"
+         << "--transfers" << QString::number(Config.GetTransfers());
     rclone->start(RCLONE_BIN, args);
 }
 

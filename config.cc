@@ -94,6 +94,20 @@ int NickelCloudConfig::GetInterval() const
     return GetInt("interval", DEFAULT_INTERVAL);
 }
 
+int NickelCloudConfig::GetTransfers() const
+{
+    static const int DEFAULT_TRANSFERS = 1;
+
+    auto transfers = GetInt("transfers", DEFAULT_TRANSFERS);
+    if (transfers > 0)
+    {
+        return transfers;
+    }
+
+    nh_log("NickelCloud: ignoring invalid transfers value '%d', defaulting to %d", transfers, DEFAULT_TRANSFERS);
+    return DEFAULT_TRANSFERS;
+}
+
 bool NickelCloudConfig::GetLogEnabled() const
 {
     return GetBool("log", false);
