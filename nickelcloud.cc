@@ -104,19 +104,20 @@ void NickelCloudWatcher::OnSyncError(QProcess::ProcessError error)
 
 void NickelCloudWatcher::Sync()
 {
-    if (SyncInProgress)
+    if (!SyncQueue.isEmpty())
     {
+        // sync cycle is still running, do nothing
         return;
     }
 
     ReadConfig();
+
     if (SyncQueue.isEmpty())
     {
         nh_log("NickelCloud: no sources configured");
         return;
     }
 
-    SyncInProgress = true;
     AnyTransferred = false;
 
     nh_log("NickelCloud: pulling %d source(s) from cloud", SyncQueue.size());
@@ -201,7 +202,6 @@ void NickelCloudWatcher::SyncNext()
 {
     if (SyncQueue.isEmpty())
     {
-        SyncInProgress = false;
         nh_dump_log();
 
         if (AnyTransferred)

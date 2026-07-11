@@ -35,6 +35,5 @@ private:
 
     QQueue<SyncPair> SyncQueue;
     bool AnyTransferred = false;
-    bool SyncInProgress = false;
     QTimer SyncTimer;
 };
