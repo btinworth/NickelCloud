@@ -32,8 +32,6 @@ private:
     void ReadConfig();
     void StartSync(const QString& source, const QString& dest);
     void SyncNext();
-    static void TriggerRescan();
-    static void InitConfig();
 
     QQueue<SyncPair> SyncQueue;
     bool AnyTransferred = false;

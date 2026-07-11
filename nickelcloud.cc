@@ -27,140 +27,22 @@ static const char* NICKELCLOUD_CONF = CONFIG_DIR "/nickelcloud.conf";
 static const char* CACHE_DIR = CONFIG_DIR "/cache";
 static const int SYNC_INTERVAL = 5 * 60 * 1000; // rescan frequency (5m)
 
-void NickelCloudWatcher::TriggerRescan()
-{
-    auto* fss = N3FSSyncManagerInstance();
-    if (fss == nullptr)
-    {
-        return;
-    }
-
-    QStringList path(ONBOARD_DIR);
-    N3FSSyncManagerSync(fss, &path);
-}
-
-void NickelCloudWatcher::ReadConfig()
-{
-    // config file is formatted as source=destination pairs, one per line
-    // skip blank lines and lines starting with '#'
-
-    SyncQueue.clear();
-
-    QFile file(NICKELCLOUD_CONF);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        return;
-    }
-
-    while (!file.atEnd())
-    {
-        auto line = QString::fromUtf8(file.readLine()).trimmed();
-        if (line.isEmpty() || line.startsWith('#'))
-        {
-            continue;
-        }
-
-        auto equals = line.indexOf('=');
-        if (equals < 0)
-        {
-            nh_log("NickelCloud: ignoring line without '=': %s", qPrintable(line));
-            continue;
-        }
-
-        auto source = line.left(equals).trimmed();
-        auto destination = line.mid(equals + 1).trimmed();
-        if (source.isEmpty() || destination.isEmpty())
-        {
-            nh_log("NickelCloud: ignoring malformed line: %s", qPrintable(line));
-            continue;
-        }
-
-        // prefix all paths with /mnt/onboard, prevent writing outside this directory
-        destination = QDir::cleanPath(QString(ONBOARD_DIR "/") + destination);
-        if (destination != ONBOARD_DIR && !destination.startsWith(ONBOARD_DIR "/"))
-        {
-            nh_log("NickelCloud: ignoring out-of-bounds destination: %s", qPrintable(destination));
-            continue;
-        }
-
-        SyncQueue.enqueue({source, destination});
-    }
-}
-
 NickelCloudWatcher::NickelCloudWatcher()
 {
-    InitConfig();
+    QDir().mkpath(CONFIG_DIR);
+    if (!QFile::exists(RCLONE_CONF))
+    {
+        QFile::copy(RCLONE_TMPL, RCLONE_CONF);
+        nh_log("NickelCloud: created rclone.conf from template");
+    }
+    if (!QFile::exists(NICKELCLOUD_CONF))
+    {
+        QFile::copy(NICKELCLOUD_TMPL, NICKELCLOUD_CONF);
+        nh_log("NickelCloud: created nickelcloud.conf from template");
+    }
 
     SyncTimer.setInterval(SYNC_INTERVAL);
     QObject::connect(&SyncTimer, SIGNAL(timeout()), this, SLOT(Sync()));
-}
-
-void NickelCloudWatcher::StartSync(const QString& source, const QString& dest)
-{
-    QDir().mkpath(dest);
-
-    nh_log("NickelCloud: syncing %s -> %s", qPrintable(source), qPrintable(dest));
-
-    auto* rclone = new QProcess(this);
-    QObject::connect(rclone, SIGNAL(finished(int, QProcess::ExitStatus)), this,
-        SLOT(OnSyncFinished(int, QProcess::ExitStatus)));
-    QObject::connect(rclone, SIGNAL(error(QProcess::ProcessError)), this,
-        SLOT(OnSyncError(QProcess::ProcessError)));
-    QObject::connect(rclone, SIGNAL(finished(int, QProcess::ExitStatus)), rclone,
-        SLOT(deleteLater()));
-
-    QStringList args;
-    args << "copy"
-         << source << dest
-         << "--config" << RCLONE_CONF
-         << "--ca-cert" << CA_CERT
-         << "--cache-dir" << CACHE_DIR
-         << "--transfers" << "1"
-         << "--stats" << "0"
-         << "--error-on-no-transfer"
-         << "--log-file" << RCLONE_LOG
-         << "--log-level" << "INFO";
-    rclone->start(RCLONE_BIN, args);
-}
-
-// start the next queued sync, or finish the cycle if the queue is empty
-void NickelCloudWatcher::SyncNext()
-{
-    if (SyncQueue.isEmpty())
-    {
-        SyncInProgress = false;
-        nh_dump_log();
-        if (AnyTransferred)
-        {
-            TriggerRescan();
-        }
-
-        return;
-    }
-
-    const auto& next = SyncQueue.head();
-    StartSync(next.source, next.dest);
-}
-
-void NickelCloudWatcher::Sync()
-{
-    if (SyncInProgress)
-    {
-        return;
-    }
-
-    ReadConfig();
-    if (SyncQueue.isEmpty())
-    {
-        nh_log("NickelCloud: no sources configured");
-        return;
-    }
-
-    SyncInProgress = true;
-    AnyTransferred = false;
-
-    nh_log("NickelCloud: pulling %d source(s) from cloud", SyncQueue.size());
-    SyncNext();
 }
 
 void NickelCloudWatcher::OnNetworkConnected()
@@ -220,19 +102,126 @@ void NickelCloudWatcher::OnSyncError(QProcess::ProcessError error)
     SyncNext();
 }
 
-void NickelCloudWatcher::InitConfig()
+void NickelCloudWatcher::Sync()
 {
-    QDir().mkpath(CONFIG_DIR);
-    if (!QFile::exists(RCLONE_CONF))
+    if (SyncInProgress)
     {
-        QFile::copy(RCLONE_TMPL, RCLONE_CONF);
-        nh_log("NickelCloud: created rclone.conf from template");
+        return;
     }
-    if (!QFile::exists(NICKELCLOUD_CONF))
+
+    ReadConfig();
+    if (SyncQueue.isEmpty())
     {
-        QFile::copy(NICKELCLOUD_TMPL, NICKELCLOUD_CONF);
-        nh_log("NickelCloud: created nickelcloud.conf from template");
+        nh_log("NickelCloud: no sources configured");
+        return;
     }
+
+    SyncInProgress = true;
+    AnyTransferred = false;
+
+    nh_log("NickelCloud: pulling %d source(s) from cloud", SyncQueue.size());
+    SyncNext();
+}
+
+void NickelCloudWatcher::ReadConfig()
+{
+    // config file is formatted as source=destination pairs, one per line
+    // skip blank lines and lines starting with '#'
+
+    SyncQueue.clear();
+
+    QFile file(NICKELCLOUD_CONF);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        return;
+    }
+
+    while (!file.atEnd())
+    {
+        auto line = QString::fromUtf8(file.readLine()).trimmed();
+        if (line.isEmpty() || line.startsWith('#'))
+        {
+            continue;
+        }
+
+        auto equals = line.indexOf('=');
+        if (equals < 0)
+        {
+            nh_log("NickelCloud: ignoring line without '=': %s", qPrintable(line));
+            continue;
+        }
+
+        auto source = line.left(equals).trimmed();
+        auto destination = line.mid(equals + 1).trimmed();
+        if (source.isEmpty() || destination.isEmpty())
+        {
+            nh_log("NickelCloud: ignoring malformed line: %s", qPrintable(line));
+            continue;
+        }
+
+        // prefix all paths with /mnt/onboard, prevent writing outside this directory
+        destination = QDir::cleanPath(QString(ONBOARD_DIR "/") + destination);
+        if (destination != ONBOARD_DIR && !destination.startsWith(ONBOARD_DIR "/"))
+        {
+            nh_log("NickelCloud: ignoring out-of-bounds destination: %s", qPrintable(destination));
+            continue;
+        }
+
+        SyncQueue.enqueue({source, destination});
+    }
+}
+
+void NickelCloudWatcher::StartSync(const QString& source, const QString& dest)
+{
+    QDir().mkpath(dest);
+
+    nh_log("NickelCloud: syncing %s -> %s", qPrintable(source), qPrintable(dest));
+
+    auto* rclone = new QProcess(this);
+    QObject::connect(rclone, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(OnSyncFinished(int, QProcess::ExitStatus)));
+    QObject::connect(rclone, SIGNAL(error(QProcess::ProcessError)), this, SLOT(OnSyncError(QProcess::ProcessError)));
+    QObject::connect(rclone, SIGNAL(finished(int, QProcess::ExitStatus)), rclone, SLOT(deleteLater()));
+
+    QStringList args;
+    args << "copy"
+         << source << dest
+         << "--config" << RCLONE_CONF
+         << "--ca-cert" << CA_CERT
+         << "--cache-dir" << CACHE_DIR
+         << "--transfers" << "1"
+         << "--stats" << "0"
+         << "--error-on-no-transfer"
+         << "--log-file" << RCLONE_LOG
+         << "--log-level" << "INFO";
+    rclone->start(RCLONE_BIN, args);
+}
+
+// start the next queued sync, or finish the cycle if the queue is empty
+void NickelCloudWatcher::SyncNext()
+{
+    if (SyncQueue.isEmpty())
+    {
+        SyncInProgress = false;
+        nh_dump_log();
+
+        if (AnyTransferred)
+        {
+            // files have been modified, trigger a library scan
+            auto* fss = N3FSSyncManagerInstance();
+            if (fss == nullptr)
+            {
+                return;
+            }
+
+            QStringList path(ONBOARD_DIR);
+            N3FSSyncManagerSync(fss, &path);
+        }
+
+        return;
+    }
+
+    const auto& next = SyncQueue.head();
+    StartSync(next.source, next.dest);
 }
 
 static int NickelCloudInit()
