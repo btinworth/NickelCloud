@@ -23,9 +23,10 @@ jobs:
           version: "5.*"
           cache: true
 
+      - name: Build Tests
+        working-directory: tests
+        run: qmake && make
+
       - name: Run Tests
         working-directory: tests
-        run: |
-          qmake
-          make
-          ./tests
+        run: ./tests
