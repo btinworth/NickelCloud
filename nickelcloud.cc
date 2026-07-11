@@ -237,6 +237,8 @@ void NickelCloudWatcher::InitConfig()
 
 static int NickelCloudInit()
 {
+    static NickelCloudWatcher watcher;
+
     auto* wm = WirelessManagerInstance != nullptr ? WirelessManagerInstance() : nullptr;
     if (wm == nullptr)
     {
@@ -244,16 +246,15 @@ static int NickelCloudInit()
         return 0;
     }
 
-    auto* watcher = new NickelCloudWatcher();
-    QObject::connect(wm, SIGNAL(networkConnected()), watcher, SLOT(OnNetworkConnected()), Qt::UniqueConnection);
-    QObject::connect(wm, SIGNAL(networkDisconnected()), watcher, SLOT(OnNetworkDisconnected()), Qt::UniqueConnection);
+    QObject::connect(wm, SIGNAL(networkConnected()), &watcher, SLOT(OnNetworkConnected()), Qt::UniqueConnection);
+    QObject::connect(wm, SIGNAL(networkDisconnected()), &watcher, SLOT(OnNetworkDisconnected()), Qt::UniqueConnection);
     return 0;
 }
 
 static struct nh_info NickelCloud = {
     .name = "NickelCloud",
     .desc = "Sync books from the cloud",
-    .uninstall_flag = "/mnt/onboard/.adds/nickelcloud/uninstall",
+    .uninstall_flag = CONFIG_DIR "/uninstall",
 };
 
 static struct nh_hook NickelCloudHook[] = {
