@@ -1,4 +1,5 @@
 #include "nickelcloud.h"
+#include "utils.h"
 #include <NickelHook.h>
 #include <QDir>
 #include <QFile>
@@ -193,9 +194,8 @@ void NickelCloudWatcher::ReadConfig()
 
     for (const auto& pair : Config.GetSources())
     {
-        // prefix all paths with /mnt/onboard, prevent writing outside this directory
-        auto destination = QDir::cleanPath(QString(ONBOARD_DIR "/") + pair.dest);
-        if (destination != ONBOARD_DIR && !destination.startsWith(ONBOARD_DIR "/"))
+        auto destination = Utils::ResolvePath(ONBOARD_DIR, pair.dest);
+        if (destination.isEmpty())
         {
             nh_log("NickelCloud: ignoring out-of-bounds destination: %s", qPrintable(pair.dest));
             continue;
