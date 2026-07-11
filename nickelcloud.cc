@@ -7,6 +7,7 @@
 #include <QQueue>
 #include <QString>
 #include <QStringList>
+#include <QTimer>
 
 static QObject* (*WirelessManagerInstance)();
 static QObject* (*N3FSSyncManagerInstance)();
@@ -24,6 +25,7 @@ static const char* RCLONE_CONF = CONFIG_DIR "/rclone.conf";
 static const char* RCLONE_LOG = CONFIG_DIR "/rclone.log";
 static const char* NICKELCLOUD_CONF = CONFIG_DIR "/nickelcloud.conf";
 static const char* CACHE_DIR = CONFIG_DIR "/cache";
+static const int SYNC_INTERVAL = 5 * 60 * 1000; // rescan frequency (5m)
 
 static QQueue<SyncPair> SyncQueue; // remaining sources
 static bool AnyTransferred = false; // true if anything was downloaded
@@ -89,6 +91,12 @@ static void ReadConfig()
     }
 }
 
+NickelCloudWatcher::NickelCloudWatcher()
+{
+    SyncTimer.setInterval(SYNC_INTERVAL);
+    QObject::connect(&SyncTimer, SIGNAL(timeout()), this, SLOT(Sync()));
+}
+
 void NickelCloudWatcher::StartSync(const QString& source, const QString& dest)
 {
     QDir().mkpath(dest);
@@ -136,7 +144,7 @@ void NickelCloudWatcher::SyncNext()
     StartSync(next.source, next.dest);
 }
 
-void NickelCloudWatcher::OnNetworkConnected()
+void NickelCloudWatcher::Sync()
 {
     if (SyncInProgress)
     {
@@ -153,8 +161,19 @@ void NickelCloudWatcher::OnNetworkConnected()
     SyncInProgress = true;
     AnyTransferred = false;
 
-    nh_log("NickelCloud: network connected, pulling %d source(s) from cloud", SyncQueue.size());
+    nh_log("NickelCloud: pulling %d source(s) from cloud", SyncQueue.size());
     SyncNext();
+}
+
+void NickelCloudWatcher::OnNetworkConnected()
+{
+    SyncTimer.start();
+    Sync();
+}
+
+void NickelCloudWatcher::OnNetworkDisconnected()
+{
+    SyncTimer.stop();
 }
 
 void NickelCloudWatcher::OnSyncFinished(int exitCode, QProcess::ExitStatus status)
@@ -229,8 +248,9 @@ static int NickelCloudInit()
         return 0;
     }
 
-    QObject::connect(wm, SIGNAL(networkConnected()), new NickelCloudWatcher(), SLOT(OnNetworkConnected()), Qt::UniqueConnection);
-    nh_log("NickelCloud: watching WirelessManager::networkConnected()");
+    auto* watcher = new NickelCloudWatcher();
+    QObject::connect(wm, SIGNAL(networkConnected()), watcher, SLOT(OnNetworkConnected()), Qt::UniqueConnection);
+    QObject::connect(wm, SIGNAL(networkDisconnected()), watcher, SLOT(OnNetworkDisconnected()), Qt::UniqueConnection);
     return 0;
 }
 
