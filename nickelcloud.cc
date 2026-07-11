@@ -42,7 +42,7 @@ NickelCloudWatcher::NickelCloudWatcher()
     Config.Load(NICKELCLOUD_CONF);
 
     UpdateSyncTimer();
-    QObject::connect(&SyncTimer, SIGNAL(timeout()), this, SLOT(Sync()));
+    QObject::connect(&SyncTimer, &QTimer::timeout, this, &NickelCloudWatcher::Sync);
 }
 
 void NickelCloudWatcher::OnNetworkConnected()
@@ -226,10 +226,10 @@ void NickelCloudWatcher::StartSync(const QString& source, const QString& dest)
 
     auto* rclone = new QProcess(this);
     rclone->setProcessChannelMode(QProcess::MergedChannels);
-    QObject::connect(rclone, SIGNAL(readyReadStandardOutput()), this, SLOT(OnSyncOutput()));
-    QObject::connect(rclone, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(OnSyncFinished(int, QProcess::ExitStatus)));
-    QObject::connect(rclone, SIGNAL(error(QProcess::ProcessError)), this, SLOT(OnSyncError(QProcess::ProcessError)));
-    QObject::connect(rclone, SIGNAL(finished(int, QProcess::ExitStatus)), rclone, SLOT(deleteLater()));
+    QObject::connect(rclone, &QProcess::readyReadStandardOutput, this, &NickelCloudWatcher::OnSyncOutput);
+    QObject::connect(rclone, static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished), this, &NickelCloudWatcher::OnSyncFinished);
+    QObject::connect(rclone, static_cast<void (QProcess::*)(QProcess::ProcessError)>(&QProcess::error), this, &NickelCloudWatcher::OnSyncError);
+    QObject::connect(rclone, static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished), rclone, &QObject::deleteLater);
 
     QStringList args;
     args << Config.GetMode()
