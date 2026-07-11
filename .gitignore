@@ -13,4 +13,13 @@ compile_commands.json
 /rclone-*.zip
 /cacert.pem
 
+# qmake test build artifacts
+/tests/Makefile
+/tests/*.o
+/tests/*.moc
+/tests/.qmake.stash
+/tests/moc_predefs.h
+/tests/target_wrapper.sh
+/tests/config_test
+
 .DS_Store
