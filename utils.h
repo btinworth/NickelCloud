@@ -5,5 +5,4 @@
 class Utils
 {
 public:
-    static QString ResolvePath(const QString& root, const QString& relative);
 };

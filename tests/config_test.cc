@@ -28,9 +28,9 @@ void ConfigTest::sources_parsesBasicPairs()
     auto sources = config.GetSources();
     QCOMPARE(sources.size(), 2);
     QCOMPARE(sources.at(0).source, QString("OneDrive:eBooks"));
-    QCOMPARE(sources.at(0).dest, QString("Books"));
+    QCOMPARE(sources.at(0).dest, QString("/mnt/onboard/Books"));
     QCOMPARE(sources.at(1).source, QString("Dropbox:Novels"));
-    QCOMPARE(sources.at(1).dest, QString("Fiction/Novels"));
+    QCOMPARE(sources.at(1).dest, QString("/mnt/onboard/Fiction/Novels"));
 }
 
 void ConfigTest::sources_ignoresEmptyDestination()
@@ -38,6 +38,15 @@ void ConfigTest::sources_ignoresEmptyDestination()
     auto config = LoadConfig(
         "[sources]\n"
         "OneDrive:eBooks =\n");
+
+    QCOMPARE(config.GetSources().size(), 0);
+}
+
+void ConfigTest::sources_ignoresEmptySource()
+{
+    auto config = LoadConfig(
+        "[sources]\n"
+        " = Books\n");
 
     QCOMPARE(config.GetSources().size(), 0);
 }
@@ -67,7 +76,96 @@ void ConfigTest::comments_stripTrailing()
 
     auto sources = config.GetSources();
     QCOMPARE(sources.size(), 1);
-    QCOMPARE(sources.at(0).dest, QString("Books"));
+    QCOMPARE(sources.at(0).dest, QString("/mnt/onboard/Books"));
+}
+
+void ConfigTest::sources_collapsesInternalTraversalThatStaysWithinRoot()
+{
+    auto config = LoadConfig(
+        "[sources]\n"
+        "OneDrive:eBooks = Books/../Fiction\n");
+
+    auto sources = config.GetSources();
+    QCOMPARE(sources.size(), 1);
+    QCOMPARE(sources.at(0).dest, QString("/mnt/onboard/Fiction"));
+}
+
+void ConfigTest::sources_allowsRootItselfViaDot()
+{
+    auto config = LoadConfig(
+        "[sources]\n"
+        "OneDrive:eBooks = .\n");
+
+    auto sources = config.GetSources();
+    QCOMPARE(sources.size(), 1);
+    QCOMPARE(sources.at(0).dest, QString("/mnt/onboard"));
+}
+
+void ConfigTest::sources_normalizesTrailingSlash()
+{
+    auto config = LoadConfig(
+        "[sources]\n"
+        "OneDrive:eBooks = Books/\n");
+
+    auto sources = config.GetSources();
+    QCOMPARE(sources.size(), 1);
+    QCOMPARE(sources.at(0).dest, QString("/mnt/onboard/Books"));
+}
+
+void ConfigTest::sources_rejectsParentTraversal()
+{
+    auto config = LoadConfig(
+        "[sources]\n"
+        "OneDrive:eBooks = ../etc\n");
+
+    QCOMPARE(config.GetSources().size(), 0);
+}
+
+void ConfigTest::sources_rejectsExcessiveParentTraversal()
+{
+    auto config = LoadConfig(
+        "[sources]\n"
+        "OneDrive:eBooks = ../../../../etc/passwd\n");
+
+    QCOMPARE(config.GetSources().size(), 0);
+}
+
+void ConfigTest::sources_doesNotEscapeViaEmbeddedAbsolutePath()
+{
+    auto config = LoadConfig(
+        "[sources]\n"
+        "OneDrive:eBooks = /etc/passwd\n");
+
+    auto sources = config.GetSources();
+    QCOMPARE(sources.size(), 1);
+    QCOMPARE(sources.at(0).dest, QString("/mnt/onboard/etc/passwd"));
+}
+
+void ConfigTest::sources_preservesDuplicateSourceOrder()
+{
+    auto config = LoadConfig(
+        "[sources]\n"
+        "OneDrive:eBooks = Books\n"
+        "OneDrive:eBooks = Fiction\n");
+
+    auto sources = config.GetSources();
+    QCOMPARE(sources.size(), 2);
+    QCOMPARE(sources.at(0).source, QString("OneDrive:eBooks"));
+    QCOMPARE(sources.at(0).dest, QString("/mnt/onboard/Books"));
+    QCOMPARE(sources.at(1).source, QString("OneDrive:eBooks"));
+    QCOMPARE(sources.at(1).dest, QString("/mnt/onboard/Fiction"));
+}
+
+void ConfigTest::sources_trimsWhitespaceAroundKeyAndValue()
+{
+    auto config = LoadConfig(
+        "[sources]\n"
+        "  OneDrive:eBooks   =   Books/Fiction   \n");
+
+    auto sources = config.GetSources();
+    QCOMPARE(sources.size(), 1);
+    QCOMPARE(sources.at(0).source, QString("OneDrive:eBooks"));
+    QCOMPARE(sources.at(0).dest, QString("/mnt/onboard/Books/Fiction"));
 }
 
 void ConfigTest::sections_areCaseInsensitive()

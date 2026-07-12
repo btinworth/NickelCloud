@@ -1,6 +1,9 @@
 #include "config.h"
 #include <NickelHook.h>
+#include <QDir>
 #include <QFile>
+
+static const char* ONBOARD_DIR = "/mnt/onboard";
 
 void NickelCloudConfig::Load(const QString& path)
 {
@@ -70,13 +73,14 @@ void NickelCloudConfig::Load(const QString& path)
         }
         else if (section == Section::Sources)
         {
-            if (value.isEmpty())
+            auto path = ResolvePath(ONBOARD_DIR, value);
+            if (value.isEmpty() || path.isEmpty())
             {
-                nh_log("NickelCloud: ignoring malformed line: %s", qPrintable(line));
+                nh_log("NickelCloud: ignoring invalid destination: %s", qPrintable(value));
             }
             else
             {
-                Sources.enqueue({key, value});
+                Sources.enqueue({key, path});
             }
         }
     }
@@ -181,4 +185,15 @@ QString NickelCloudConfig::StripComment(const QString& line)
 {
     auto comment = line.indexOf('#');
     return (comment < 0 ? line : line.left(comment)).trimmed();
+}
+
+QString NickelCloudConfig::ResolvePath(const QString& root, const QString& relative)
+{
+    auto resolved = QDir::cleanPath(root + "/" + relative);
+    if (resolved != root && !resolved.startsWith(root + "/"))
+    {
+        return QString();
+    }
+
+    return resolved;
 }

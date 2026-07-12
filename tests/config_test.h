@@ -10,10 +10,20 @@ class ConfigTest : public QObject
 private slots:
     void sources_parsesBasicPairs();
     void sources_ignoresEmptyDestination();
+    void sources_ignoresEmptySource();
     void sources_ignoredOutsideSection();
 
     void comments_stripFullLine();
     void comments_stripTrailing();
+
+    void sources_collapsesInternalTraversalThatStaysWithinRoot();
+    void sources_allowsRootItselfViaDot();
+    void sources_normalizesTrailingSlash();
+    void sources_rejectsParentTraversal();
+    void sources_rejectsExcessiveParentTraversal();
+    void sources_doesNotEscapeViaEmbeddedAbsolutePath();
+    void sources_preservesDuplicateSourceOrder();
+    void sources_trimsWhitespaceAroundKeyAndValue();
 
     void sections_areCaseInsensitive();
     void sections_unknownIsIgnored();

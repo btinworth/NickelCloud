@@ -1,5 +1,4 @@
 #include "nickelcloud.h"
-#include "utils.h"
 #include <NickelHook.h>
 #include <QDir>
 #include <QFile>
@@ -198,23 +197,10 @@ void NickelCloudWatcher::CreateConfig(const char* filePath, const char* tmplFile
 
 void NickelCloudWatcher::ReadConfig()
 {
-    SyncQueue.clear();
-
     Config.Load(NICKELCLOUD_CONF);
+    SyncQueue = Config.GetSources();
 
     UpdateSyncTimer();
-
-    for (const auto& pair : Config.GetSources())
-    {
-        auto destination = Utils::ResolvePath(ONBOARD_DIR, pair.dest);
-        if (destination.isEmpty())
-        {
-            nh_log("NickelCloud: ignoring out-of-bounds destination: %s", qPrintable(pair.dest));
-            continue;
-        }
-
-        SyncQueue.enqueue({pair.source, destination});
-    }
 }
 
 void NickelCloudWatcher::UpdateSyncTimer()
@@ -222,7 +208,7 @@ void NickelCloudWatcher::UpdateSyncTimer()
     auto interval = Config.GetInterval();
     if (interval <= 0)
     {
-        // an interval of 0 disables periodic re-checking entirely
+        // disable timer
         SyncTimer.stop();
         return;
     }

@@ -38,6 +38,8 @@ private:
     int GetInt(const QString& key, int defaultValue = 0) const;
     bool GetBool(const QString& key, bool defaultValue = false) const;
 
+    static QString ResolvePath(const QString& root, const QString& relative);
+
     QHash<QString, QString> General;
     QQueue<SyncPair> Sources;
 };
