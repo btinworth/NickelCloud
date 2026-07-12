@@ -264,8 +264,13 @@ void NickelCloudWatcher::SyncNext()
             auto* fss = N3FSSyncManagerInstance();
             if (fss != nullptr)
             {
-                QStringList path(ONBOARD_DIR.absolutePath());
-                N3FSSyncManagerSync(fss, &path);
+                QStringList paths;
+                for (const auto& pair : Config.GetSources())
+                {
+                    paths.append(pair.dest);
+                }
+
+                N3FSSyncManagerSync(fss, &paths);
             }
         }
 
