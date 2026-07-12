@@ -189,7 +189,7 @@ QString NickelCloudConfig::StripComment(const QString& line)
 QString NickelCloudConfig::ResolvePath(const QDir& root, const QString& relative)
 {
     auto rootPath = root.absolutePath();
-    auto resolved = QDir::cleanPath(root.filePath(relative));
+    auto resolved = QDir::cleanPath(rootPath + "/" + relative);
     if (resolved != rootPath && !resolved.startsWith(rootPath + "/"))
     {
         return QString();

@@ -14,3 +14,5 @@ static const QFile RCLONE_TMPL(INSTALL_DIR.filePath("rclone.conf.tmpl"));
 static const QFile NICKELCLOUD_TMPL(INSTALL_DIR.filePath("nickelcloud.conf.tmpl"));
 static const QFile RCLONE_CONF(CONFIG_DIR.filePath("rclone.conf"));
 static const QFile NICKELCLOUD_CONF(CONFIG_DIR.filePath("nickelcloud.conf"));
+
+static const QByteArray UNINSTALL_FLAG = CONFIG_DIR.filePath("uninstall").toUtf8();
