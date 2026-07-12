@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../NickelCloudConfig.h"
+#include "NickelCloudConfig.h"
 #include <QObject>
 
 class ConfigTest : public QObject

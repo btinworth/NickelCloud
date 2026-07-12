@@ -7,7 +7,7 @@ CONFIG -= app_bundle
 TEMPLATE = app
 TARGET = tests
 
-INCLUDEPATH += .. ../NickelHook
+INCLUDEPATH += .. ../src ../NickelHook
 
 QMAKE_CXXFLAGS += -Wno-deprecated-declarations
 
@@ -15,8 +15,8 @@ SOURCES += \
     main.cc \
     ConfigTest.cc \
     TestStubs.cc \
-    ../NickelCloudConfig.cc
+    ../src/NickelCloudConfig.cc
 
 HEADERS += \
     ConfigTest.h \
-    ../NickelCloudConfig.h
+    ../src/NickelCloudConfig.h
