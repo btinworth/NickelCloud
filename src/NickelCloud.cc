@@ -19,7 +19,7 @@ NickelCloudWatcher::NickelCloudWatcher()
     CreateConfig(RCLONE_CONF, RCLONE_TMPL);
     CreateConfig(NICKELCLOUD_CONF, NICKELCLOUD_TMPL);
 
-    Config.Load(NICKELCLOUD_CONF.fileName());
+    Config.Load(NICKELCLOUD_CONF);
 
     UpdateSyncTimer();
     QObject::connect(&SyncTimer, &QTimer::timeout, this, &NickelCloudWatcher::Sync);
@@ -160,32 +160,32 @@ void NickelCloudWatcher::Sync()
     SyncNext();
 }
 
-void NickelCloudWatcher::CreateConfig(const QFile& filePath, const QFile& tmplFilePath)
+void NickelCloudWatcher::CreateConfig(const char* filePath, const char* tmplFilePath)
 {
-    if (!QDir().mkpath(CONFIG_DIR.absolutePath()))
+    if (!QDir().mkpath(CONFIG_DIR))
     {
-        nh_log("NickelCloud: failed to create config directory: %s", qPrintable(CONFIG_DIR.absolutePath()));
+        nh_log("NickelCloud: failed to create config directory: %s", CONFIG_DIR);
         return;
     }
 
-    if (filePath.exists())
+    if (QFile::exists(filePath))
     {
         return; // nothing to do
     }
 
-    if (QFile::copy(tmplFilePath.fileName(), filePath.fileName()))
+    if (QFile::copy(tmplFilePath, filePath))
     {
-        nh_log("NickelCloud: created config from template: %s", qPrintable(filePath.fileName()));
+        nh_log("NickelCloud: created config from template: %s", filePath);
     }
     else
     {
-        nh_log("NickelCloud: failed to create config from template: %s -> %s", qPrintable(tmplFilePath.fileName()), qPrintable(filePath.fileName()));
+        nh_log("NickelCloud: failed to create config from template: %s -> %s", tmplFilePath, filePath);
     }
 }
 
 void NickelCloudWatcher::ReadConfig()
 {
-    Config.Load(NICKELCLOUD_CONF.fileName());
+    Config.Load(NICKELCLOUD_CONF);
     SyncQueue = Config.GetSources();
 
     UpdateSyncTimer();
@@ -237,15 +237,15 @@ void NickelCloudWatcher::StartSync(const QString& source, const QString& dest)
     QStringList args;
     args << Config.GetMode()
          << source << dest
-         << "--config" << RCLONE_CONF.fileName()
-         << "--ca-cert" << CA_CERT.fileName()
-         << "--cache-dir" << CACHE_DIR.absolutePath()
+         << "--config" << RCLONE_CONF
+         << "--ca-cert" << CA_CERT
+         << "--cache-dir" << CACHE_DIR
          << "--stats" << "0"
          << "--log-level" << "INFO"
          << "--transfers" << QString::number(Config.GetTransfers())
          << Config.GetExtraArgs();
 
-    rclone->start(RCLONE_BIN.fileName(), args);
+    rclone->start(RCLONE_BIN, args);
 }
 
 // start the next queued sync, or finish the cycle if the queue is empty
@@ -301,7 +301,7 @@ static int NickelCloudInit()
 static struct nh_info NickelCloud = {
     .name = "NickelCloud",
     .desc = "Pull books from cloud storage into your library using rclone",
-    .uninstall_flag = UNINSTALL_FLAG.constData(),
+    .uninstall_flag = UNINSTALL_FLAG,
 };
 
 static struct nh_hook NickelCloudHook[] = {

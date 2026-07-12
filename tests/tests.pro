@@ -15,7 +15,8 @@ SOURCES += \
     main.cc \
     ConfigTest.cc \
     TestStubs.cc \
-    ../src/NickelCloudConfig.cc
+    ../src/NickelCloudConfig.cc \
+    ../src/Constants.cc
 
 HEADERS += \
     ConfigTest.h \

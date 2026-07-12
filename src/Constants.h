@@ -1,18 +1,15 @@
 #pragma once
 
-#include <QDir>
-#include <QFile>
+extern const char* ONBOARD_DIR;
 
-static const QDir ONBOARD_DIR("/mnt/onboard");
-static const QDir CONFIG_DIR(ONBOARD_DIR.filePath(".adds/nickelcloud"));
-static const QDir INSTALL_DIR("/usr/local/nickelcloud");
-static const QDir CACHE_DIR(CONFIG_DIR.filePath("cache"));
+extern const char* INSTALL_DIR;
+extern const char* RCLONE_BIN;
+extern const char* CA_CERT;
+extern const char* RCLONE_TMPL;
+extern const char* NICKELCLOUD_TMPL;
 
-static const QFile RCLONE_BIN(INSTALL_DIR.filePath("rclone"));
-static const QFile CA_CERT(INSTALL_DIR.filePath("cacert.pem"));
-static const QFile RCLONE_TMPL(INSTALL_DIR.filePath("rclone.conf.tmpl"));
-static const QFile NICKELCLOUD_TMPL(INSTALL_DIR.filePath("nickelcloud.conf.tmpl"));
-static const QFile RCLONE_CONF(CONFIG_DIR.filePath("rclone.conf"));
-static const QFile NICKELCLOUD_CONF(CONFIG_DIR.filePath("nickelcloud.conf"));
-
-static const QByteArray UNINSTALL_FLAG = CONFIG_DIR.filePath("uninstall").toUtf8();
+extern const char* CONFIG_DIR;
+extern const char* RCLONE_CONF;
+extern const char* NICKELCLOUD_CONF;
+extern const char* CACHE_DIR;
+extern const char* UNINSTALL_FLAG;

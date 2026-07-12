@@ -2,7 +2,6 @@
 
 #include "NickelCloudConfig.h"
 #include <QByteArray>
-#include <QFile>
 #include <QObject>
 #include <QProcess>
 #include <QQueue>
@@ -27,7 +26,7 @@ private slots:
     void OnSyncOutput();
 
 private:
-    static void CreateConfig(const QFile& filePath, const QFile& tmplFilePath);
+    static void CreateConfig(const char* filePath, const char* tmplFilePath);
     void ReadConfig();
     void UpdateSyncTimer();
     void ScheduleNextSync();

@@ -31,9 +31,9 @@ void ConfigTest::sources_parsesBasicPairs()
     auto sources = config.GetSources();
     QCOMPARE(sources.size(), 2);
     QCOMPARE(sources.at(0).source, QString("OneDrive:eBooks"));
-    QCOMPARE(sources.at(0).dest, QDir::cleanPath(ONBOARD_DIR.filePath("Books")));
+    QCOMPARE(sources.at(0).dest, QString(ONBOARD_DIR) + "/Books");
     QCOMPARE(sources.at(1).source, QString("Dropbox:Novels"));
-    QCOMPARE(sources.at(1).dest, QDir::cleanPath(ONBOARD_DIR.filePath("Fiction/Novels")));
+    QCOMPARE(sources.at(1).dest, QString(ONBOARD_DIR) + "/Fiction/Novels");
 }
 
 void ConfigTest::sources_ignoresEmptyDestination()
@@ -79,7 +79,7 @@ void ConfigTest::comments_stripTrailing()
 
     auto sources = config.GetSources();
     QCOMPARE(sources.size(), 1);
-    QCOMPARE(sources.at(0).dest, QDir::cleanPath(ONBOARD_DIR.filePath("Books")));
+    QCOMPARE(sources.at(0).dest, QString(ONBOARD_DIR) + "/Books");
 }
 
 void ConfigTest::sources_collapsesInternalTraversalThatStaysWithinRoot()
@@ -90,7 +90,7 @@ void ConfigTest::sources_collapsesInternalTraversalThatStaysWithinRoot()
 
     auto sources = config.GetSources();
     QCOMPARE(sources.size(), 1);
-    QCOMPARE(sources.at(0).dest, QDir::cleanPath(ONBOARD_DIR.filePath("Fiction")));
+    QCOMPARE(sources.at(0).dest, QString(ONBOARD_DIR) + "/Fiction");
 }
 
 void ConfigTest::sources_allowsRootItselfViaDot()
@@ -101,7 +101,7 @@ void ConfigTest::sources_allowsRootItselfViaDot()
 
     auto sources = config.GetSources();
     QCOMPARE(sources.size(), 1);
-    QCOMPARE(sources.at(0).dest, ONBOARD_DIR.absolutePath());
+    QCOMPARE(sources.at(0).dest, QString(ONBOARD_DIR));
 }
 
 void ConfigTest::sources_normalizesTrailingSlash()
@@ -112,7 +112,7 @@ void ConfigTest::sources_normalizesTrailingSlash()
 
     auto sources = config.GetSources();
     QCOMPARE(sources.size(), 1);
-    QCOMPARE(sources.at(0).dest, QDir::cleanPath(ONBOARD_DIR.filePath("Books")));
+    QCOMPARE(sources.at(0).dest, QString(ONBOARD_DIR) + "/Books");
 }
 
 void ConfigTest::sources_rejectsParentTraversal()
@@ -141,7 +141,7 @@ void ConfigTest::sources_doesNotEscapeViaEmbeddedAbsolutePath()
 
     auto sources = config.GetSources();
     QCOMPARE(sources.size(), 1);
-    QCOMPARE(sources.at(0).dest, QDir::cleanPath(ONBOARD_DIR.filePath("etc/passwd")));
+    QCOMPARE(sources.at(0).dest, QString(ONBOARD_DIR) + "/etc/passwd");
 }
 
 void ConfigTest::sources_preservesDuplicateSourceOrder()
@@ -154,9 +154,9 @@ void ConfigTest::sources_preservesDuplicateSourceOrder()
     auto sources = config.GetSources();
     QCOMPARE(sources.size(), 2);
     QCOMPARE(sources.at(0).source, QString("OneDrive:eBooks"));
-    QCOMPARE(sources.at(0).dest, QDir::cleanPath(ONBOARD_DIR.filePath("Books")));
+    QCOMPARE(sources.at(0).dest, QString(ONBOARD_DIR) + "/Books");
     QCOMPARE(sources.at(1).source, QString("OneDrive:eBooks"));
-    QCOMPARE(sources.at(1).dest, QDir::cleanPath(ONBOARD_DIR.filePath("Fiction")));
+    QCOMPARE(sources.at(1).dest, QString(ONBOARD_DIR) + "/Fiction");
 }
 
 void ConfigTest::sources_trimsWhitespaceAroundKeyAndValue()
@@ -168,7 +168,7 @@ void ConfigTest::sources_trimsWhitespaceAroundKeyAndValue()
     auto sources = config.GetSources();
     QCOMPARE(sources.size(), 1);
     QCOMPARE(sources.at(0).source, QString("OneDrive:eBooks"));
-    QCOMPARE(sources.at(0).dest, QDir::cleanPath(ONBOARD_DIR.filePath("Books/Fiction")));
+    QCOMPARE(sources.at(0).dest, QString(ONBOARD_DIR) + "/Books/Fiction");
 }
 
 void ConfigTest::sections_areCaseInsensitive()
