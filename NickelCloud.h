@@ -1,6 +1,6 @@
 #pragma once
 
-#include "config.h"
+#include "NickelCloudConfig.h"
 #include <QByteArray>
 #include <QFile>
 #include <QObject>

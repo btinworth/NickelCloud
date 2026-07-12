@@ -1,9 +1,8 @@
-#include "config.h"
+#include "NickelCloudConfig.h"
+#include "Constants.h"
 #include <NickelHook.h>
 #include <QDir>
 #include <QFile>
-
-static const QDir ONBOARD_DIR("/mnt/onboard");
 
 void NickelCloudConfig::Load(const QString& path)
 {

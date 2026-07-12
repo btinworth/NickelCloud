@@ -13,10 +13,10 @@ QMAKE_CXXFLAGS += -Wno-deprecated-declarations
 
 SOURCES += \
     main.cc \
-    config_test.cc \
-    nh_log_stub.cc \
-    ../config.cc
+    ConfigTest.cc \
+    TestStubs.cc \
+    ../NickelCloudConfig.cc
 
 HEADERS += \
-    config_test.h \
-    ../config.h
+    ConfigTest.h \
+    ../NickelCloudConfig.h

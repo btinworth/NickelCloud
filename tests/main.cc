@@ -1,4 +1,4 @@
-#include "config_test.h"
+#include "ConfigTest.h"
 #include <QtTest>
 
 int main(int argc, char** argv)
