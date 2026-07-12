@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   build:
+    name: Build
     uses: ./.github/workflows/build.yml
 
   release:
@@ -19,12 +20,15 @@ jobs:
 
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
-          name: KoboRoot
+          name: KoboRoot.tgz
           path: .
 
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" KoboRoot.tgz --generate-notes
+        run: |
+          gh release create "$GITHUB_REF_NAME" KoboRoot.tgz \
+            --repo "$GITHUB_REPOSITORY" \
+            --generate-notes
