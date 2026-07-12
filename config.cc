@@ -3,7 +3,7 @@
 #include <QDir>
 #include <QFile>
 
-static const char* ONBOARD_DIR = "/mnt/onboard";
+static const QDir ONBOARD_DIR("/mnt/onboard");
 
 void NickelCloudConfig::Load(const QString& path)
 {
@@ -187,10 +187,11 @@ QString NickelCloudConfig::StripComment(const QString& line)
     return (comment < 0 ? line : line.left(comment)).trimmed();
 }
 
-QString NickelCloudConfig::ResolvePath(const QString& root, const QString& relative)
+QString NickelCloudConfig::ResolvePath(const QDir& root, const QString& relative)
 {
-    auto resolved = QDir::cleanPath(root + "/" + relative);
-    if (resolved != root && !resolved.startsWith(root + "/"))
+    auto rootPath = root.absolutePath();
+    auto resolved = QDir::cleanPath(root.filePath(relative));
+    if (resolved != rootPath && !resolved.startsWith(rootPath + "/"))
     {
         return QString();
     }
