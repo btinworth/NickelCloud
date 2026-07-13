@@ -3,8 +3,8 @@ include NickelHook/NickelHook.mk
 RCLONE_VERSION ?= 1.74.4
 
 override LIBRARY  := libnickelcloud.so
-override SOURCES  += src/NickelCloud.cc src/NickelCloudConfig.cc src/Constants.cc
-override MOCS     += src/NickelCloud.h
+override SOURCES  += $(sort $(wildcard src/*.cc))
+override MOCS     += $(sort $(shell grep -l 'Q_OBJECT' src/*.h 2>/dev/null || true))
 override CFLAGS   += -Wall -Wextra -Werror
 override CXXFLAGS += -Wall -Wextra -Werror -Wno-missing-field-initializers
 
