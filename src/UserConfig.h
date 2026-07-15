@@ -11,7 +11,7 @@ struct SyncPair
     QString dest;
 };
 
-class NickelCloudConfig
+class UserConfig
 {
 public:
     void Load(const QString& path);

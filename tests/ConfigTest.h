@@ -1,6 +1,6 @@
 #pragma once
 
-#include "NickelCloudConfig.h"
+#include "UserConfig.h"
 #include <QObject>
 
 class ConfigTest : public QObject
@@ -51,5 +51,5 @@ private slots:
     void logEnabled_unrecognizedValueFallsBackToDefault();
 
 private:
-    static NickelCloudConfig LoadConfig(const QString& contents);
+    static UserConfig LoadConfig(const QString& contents);
 };

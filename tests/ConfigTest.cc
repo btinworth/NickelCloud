@@ -4,7 +4,7 @@
 #include <QTemporaryFile>
 #include <QtTest>
 
-NickelCloudConfig ConfigTest::LoadConfig(const QString& contents)
+UserConfig ConfigTest::LoadConfig(const QString& contents)
 {
     QTemporaryFile file;
     if (!file.open())
@@ -15,7 +15,7 @@ NickelCloudConfig ConfigTest::LoadConfig(const QString& contents)
     file.write(contents.toUtf8());
     file.close();
 
-    NickelCloudConfig config;
+    UserConfig config;
     QFile configFile(file.fileName());
     config.Load(configFile.fileName());
     return config;

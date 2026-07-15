@@ -1,6 +1,6 @@
 #pragma once
 
-#include "NickelCloudConfig.h"
+#include "UserConfig.h"
 #include <QByteArray>
 #include <QObject>
 #include <QProcess>
@@ -36,7 +36,7 @@ private:
     void FlushSyncOutput();
     void HandleSyncOutputLine(const QString& line);
 
-    NickelCloudConfig Config;
+    UserConfig Config;
     QQueue<SyncPair> SyncQueue;
     QByteArray PendingOutput;
     bool AnyTransferred = false;

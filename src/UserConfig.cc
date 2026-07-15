@@ -1,10 +1,10 @@
-#include "NickelCloudConfig.h"
+#include "UserConfig.h"
 #include "Constants.h"
 #include <NickelHook.h>
 #include <QDir>
 #include <QFile>
 
-void NickelCloudConfig::Load(const QString& path)
+void UserConfig::Load(const QString& path)
 {
     General.clear();
     Sources.clear();
@@ -85,7 +85,7 @@ void NickelCloudConfig::Load(const QString& path)
     }
 }
 
-QString NickelCloudConfig::GetMode() const
+QString UserConfig::GetMode() const
 {
     static const QString DEFAULT_MODE = "copy";
 
@@ -99,7 +99,7 @@ QString NickelCloudConfig::GetMode() const
     return DEFAULT_MODE;
 }
 
-int NickelCloudConfig::GetInterval() const
+int UserConfig::GetInterval() const
 {
     static const int DEFAULT_INTERVAL = 5 * 60; // seconds (5m)
 
@@ -113,7 +113,7 @@ int NickelCloudConfig::GetInterval() const
     return interval;
 }
 
-int NickelCloudConfig::GetTransfers() const
+int UserConfig::GetTransfers() const
 {
     static const int DEFAULT_TRANSFERS = 1;
 
@@ -127,7 +127,7 @@ int NickelCloudConfig::GetTransfers() const
     return DEFAULT_TRANSFERS;
 }
 
-QStringList NickelCloudConfig::GetExtraArgs() const
+QStringList UserConfig::GetExtraArgs() const
 {
     auto extraArgs = GetString("extra_args");
     if (!extraArgs.isEmpty())
@@ -138,29 +138,29 @@ QStringList NickelCloudConfig::GetExtraArgs() const
     return QStringList();
 }
 
-bool NickelCloudConfig::GetLogEnabled() const
+bool UserConfig::GetLogEnabled() const
 {
     return GetBool("log", false);
 }
 
-const QQueue<SyncPair>& NickelCloudConfig::GetSources() const
+const QQueue<SyncPair>& UserConfig::GetSources() const
 {
     return Sources;
 }
 
-QString NickelCloudConfig::GetString(const QString& key, const QString& defaultValue) const
+QString UserConfig::GetString(const QString& key, const QString& defaultValue) const
 {
     return General.value(key, defaultValue);
 }
 
-int NickelCloudConfig::GetInt(const QString& key, int defaultValue) const
+int UserConfig::GetInt(const QString& key, int defaultValue) const
 {
     bool success = false;
     auto value = General.value(key).toInt(&success);
     return success ? value : defaultValue;
 }
 
-bool NickelCloudConfig::GetBool(const QString& key, bool defaultValue) const
+bool UserConfig::GetBool(const QString& key, bool defaultValue) const
 {
     if (!General.contains(key))
     {
@@ -180,13 +180,13 @@ bool NickelCloudConfig::GetBool(const QString& key, bool defaultValue) const
     return defaultValue;
 }
 
-QString NickelCloudConfig::StripComment(const QString& line)
+QString UserConfig::StripComment(const QString& line)
 {
     auto comment = line.indexOf('#');
     return (comment < 0 ? line : line.left(comment)).trimmed();
 }
 
-QString NickelCloudConfig::ResolvePath(const QString& root, const QString& relative)
+QString UserConfig::ResolvePath(const QString& root, const QString& relative)
 {
     auto resolved = QDir::cleanPath(root + "/" + relative);
     if (resolved != root && !resolved.startsWith(root + "/"))
