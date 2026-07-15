@@ -10,9 +10,9 @@
 #include <QStringList>
 #include <QTimer>
 
-static QObject* (*WirelessManagerInstance)();
-static QObject* (*N3FSSyncManagerInstance)();
-static void (*N3FSSyncManagerSync)(QObject*, QStringList*);
+QObject* (*WirelessManagerInstance)() = nullptr;
+QObject* (*N3FSSyncManagerInstance)() = nullptr;
+void (*N3FSSyncManagerSync)(QObject*, QStringList*) = nullptr;
 
 NickelCloudWatcher::NickelCloudWatcher()
 {
@@ -261,17 +261,14 @@ void NickelCloudWatcher::SyncNext()
         if (AnyTransferred)
         {
             // files have been modified, trigger a library scan
-            auto* fss = N3FSSyncManagerInstance();
-            if (fss != nullptr)
+            QStringList paths;
+            for (const auto& pair : Config.GetSources())
             {
-                QStringList paths;
-                for (const auto& pair : Config.GetSources())
-                {
-                    paths.append(pair.dest);
-                }
-
-                N3FSSyncManagerSync(fss, &paths);
+                paths.append(pair.dest);
             }
+
+            auto* fss = N3FSSyncManagerInstance();
+            N3FSSyncManagerSync(fss, &paths);
         }
 
         ScheduleNextSync();
@@ -281,55 +278,3 @@ void NickelCloudWatcher::SyncNext()
     const auto& next = SyncQueue.head();
     StartSync(next.source, next.dest);
 }
-
-static int NickelCloudInit()
-{
-    static NickelCloudWatcher watcher;
-
-    auto* wm = WirelessManagerInstance != nullptr ? WirelessManagerInstance() : nullptr;
-    if (wm == nullptr)
-    {
-        nh_log("NickelCloud: could not get WirelessManager instance");
-        return 0;
-    }
-
-    QObject::connect(wm, SIGNAL(networkConnected()), &watcher, SLOT(OnNetworkConnected()), Qt::UniqueConnection);
-    QObject::connect(wm, SIGNAL(networkDisconnected()), &watcher, SLOT(OnNetworkDisconnected()), Qt::UniqueConnection);
-    return 0;
-}
-
-static struct nh_info NickelCloud = {
-    .name = "NickelCloud",
-    .desc = "Pull books from cloud storage into your library using rclone",
-    .uninstall_flag = UNINSTALL_FLAG,
-};
-
-static struct nh_hook NickelCloudHook[] = {
-    {0},
-};
-
-static struct nh_dlsym NickelCloudDlsym[] = {
-    {
-        .name = "_ZN15WirelessManager14sharedInstanceEv",
-        .out = nh_symoutptr(WirelessManagerInstance),
-        .desc = "WirelessManager::sharedInstance",
-    },
-    {
-        .name = "_ZN15N3FSSyncManager14sharedInstanceEv",
-        .out = nh_symoutptr(N3FSSyncManagerInstance),
-        .desc = "N3FSSyncManager::sharedInstance",
-    },
-    {
-        .name = "_ZN15N3FSSyncManager4syncERK11QStringList",
-        .out = nh_symoutptr(N3FSSyncManagerSync),
-        .desc = "N3FSSyncManager::sync",
-    },
-    {0},
-};
-
-NickelHook(
-    .init = NickelCloudInit,
-    .info = &NickelCloud,
-    .hook = NickelCloudHook,
-    .dlsym = NickelCloudDlsym,
-)
