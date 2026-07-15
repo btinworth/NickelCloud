@@ -12,7 +12,6 @@ INCLUDEPATH += .. ../src ../NickelHook
 QMAKE_CXXFLAGS += -Wno-deprecated-declarations
 
 SOURCES += $$files(*.cc) $$files(../src/*.cc)
-SOURCES -= ../src/NickelCloud.cc
+SOURCES -= ../src/Main.cc
 
 HEADERS += $$files(*.h) $$files(../src/*.h)
-HEADERS -= ../src/NickelCloud.h

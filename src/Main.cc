@@ -11,7 +11,7 @@ static int NickelCloudInit()
         return 0;
     }
 
-    static NickelCloudWatcher nickelCloud;
+    static NickelCloud nickelCloud;
     QObject::connect(wm, SIGNAL(networkConnected()), &nickelCloud, SLOT(OnNetworkConnected()), Qt::UniqueConnection);
     QObject::connect(wm, SIGNAL(networkDisconnected()), &nickelCloud, SLOT(OnNetworkDisconnected()), Qt::UniqueConnection);
     return 0;

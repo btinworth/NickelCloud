@@ -14,7 +14,7 @@ QObject* (*WirelessManagerInstance)() = nullptr;
 QObject* (*N3FSSyncManagerInstance)() = nullptr;
 void (*N3FSSyncManagerSync)(QObject*, QStringList*) = nullptr;
 
-NickelCloudWatcher::NickelCloudWatcher()
+NickelCloud::NickelCloud()
 {
     CreateConfig(RCLONE_CONF, RCLONE_TMPL);
     CreateConfig(NICKELCLOUD_CONF, NICKELCLOUD_TMPL);
@@ -22,20 +22,20 @@ NickelCloudWatcher::NickelCloudWatcher()
     Config.Load(NICKELCLOUD_CONF);
 
     UpdateSyncTimer();
-    QObject::connect(&SyncTimer, &QTimer::timeout, this, &NickelCloudWatcher::Sync);
+    QObject::connect(&SyncTimer, &QTimer::timeout, this, &NickelCloud::Sync);
 }
 
-void NickelCloudWatcher::OnNetworkConnected()
+void NickelCloud::OnNetworkConnected()
 {
     Sync();
 }
 
-void NickelCloudWatcher::OnNetworkDisconnected()
+void NickelCloud::OnNetworkDisconnected()
 {
     SyncTimer.stop();
 }
 
-void NickelCloudWatcher::OnSyncFinished(int exitCode, QProcess::ExitStatus status)
+void NickelCloud::OnSyncFinished(int exitCode, QProcess::ExitStatus status)
 {
     auto source = SyncQueue.head().source;
 
@@ -66,7 +66,7 @@ void NickelCloudWatcher::OnSyncFinished(int exitCode, QProcess::ExitStatus statu
     SyncNext();
 }
 
-void NickelCloudWatcher::OnSyncOutput()
+void NickelCloud::OnSyncOutput()
 {
     auto* rclone = qobject_cast<QProcess*>(sender());
     if (rclone == nullptr)
@@ -77,7 +77,7 @@ void NickelCloudWatcher::OnSyncOutput()
     ReadSyncOutput(rclone);
 }
 
-void NickelCloudWatcher::ReadSyncOutput(QProcess* rclone)
+void NickelCloud::ReadSyncOutput(QProcess* rclone)
 {
     PendingOutput += rclone->readAllStandardOutput();
 
@@ -90,14 +90,14 @@ void NickelCloudWatcher::ReadSyncOutput(QProcess* rclone)
     }
 }
 
-void NickelCloudWatcher::FlushSyncOutput()
+void NickelCloud::FlushSyncOutput()
 {
     auto line = QString::fromUtf8(PendingOutput).trimmed();
     PendingOutput.clear();
     HandleSyncOutputLine(line);
 }
 
-void NickelCloudWatcher::HandleSyncOutputLine(const QString& line)
+void NickelCloud::HandleSyncOutputLine(const QString& line)
 {
     if (line.isEmpty())
     {
@@ -113,7 +113,7 @@ void NickelCloudWatcher::HandleSyncOutputLine(const QString& line)
     nh_log("NickelCloud: %s", qPrintable(line));
 }
 
-void NickelCloudWatcher::OnSyncError(QProcess::ProcessError error)
+void NickelCloud::OnSyncError(QProcess::ProcessError error)
 {
     // only FailedToStart skips finished(); other errors are handled by OnSyncFinished
     if (error != QProcess::FailedToStart)
@@ -136,7 +136,7 @@ void NickelCloudWatcher::OnSyncError(QProcess::ProcessError error)
     SyncNext();
 }
 
-void NickelCloudWatcher::Sync()
+void NickelCloud::Sync()
 {
     if (!SyncQueue.isEmpty())
     {
@@ -160,7 +160,7 @@ void NickelCloudWatcher::Sync()
     SyncNext();
 }
 
-void NickelCloudWatcher::CreateConfig(const char* filePath, const char* tmplFilePath)
+void NickelCloud::CreateConfig(const char* filePath, const char* tmplFilePath)
 {
     if (!QDir().mkpath(CONFIG_DIR))
     {
@@ -183,7 +183,7 @@ void NickelCloudWatcher::CreateConfig(const char* filePath, const char* tmplFile
     }
 }
 
-void NickelCloudWatcher::ReadConfig()
+void NickelCloud::ReadConfig()
 {
     Config.Load(NICKELCLOUD_CONF);
     SyncQueue = Config.GetSources();
@@ -191,7 +191,7 @@ void NickelCloudWatcher::ReadConfig()
     UpdateSyncTimer();
 }
 
-void NickelCloudWatcher::UpdateSyncTimer()
+void NickelCloud::UpdateSyncTimer()
 {
     auto interval = Config.GetInterval();
     if (interval <= 0)
@@ -205,7 +205,7 @@ void NickelCloudWatcher::UpdateSyncTimer()
     SyncTimer.setInterval(interval * 1000);
 }
 
-void NickelCloudWatcher::ScheduleNextSync()
+void NickelCloud::ScheduleNextSync()
 {
     if (Config.GetInterval() > 0)
     {
@@ -213,7 +213,7 @@ void NickelCloudWatcher::ScheduleNextSync()
     }
 }
 
-void NickelCloudWatcher::StartSync(const QString& source, const QString& dest)
+void NickelCloud::StartSync(const QString& source, const QString& dest)
 {
     if (!QDir().mkpath(dest))
     {
@@ -229,9 +229,9 @@ void NickelCloudWatcher::StartSync(const QString& source, const QString& dest)
 
     auto* rclone = new QProcess(this);
     rclone->setProcessChannelMode(QProcess::MergedChannels);
-    QObject::connect(rclone, &QProcess::readyReadStandardOutput, this, &NickelCloudWatcher::OnSyncOutput);
-    QObject::connect(rclone, static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished), this, &NickelCloudWatcher::OnSyncFinished);
-    QObject::connect(rclone, static_cast<void (QProcess::*)(QProcess::ProcessError)>(&QProcess::error), this, &NickelCloudWatcher::OnSyncError);
+    QObject::connect(rclone, &QProcess::readyReadStandardOutput, this, &NickelCloud::OnSyncOutput);
+    QObject::connect(rclone, static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished), this, &NickelCloud::OnSyncFinished);
+    QObject::connect(rclone, static_cast<void (QProcess::*)(QProcess::ProcessError)>(&QProcess::error), this, &NickelCloud::OnSyncError);
     QObject::connect(rclone, static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished), rclone, &QObject::deleteLater);
 
     QStringList args;
@@ -249,7 +249,7 @@ void NickelCloudWatcher::StartSync(const QString& source, const QString& dest)
 }
 
 // start the next queued sync, or finish the cycle if the queue is empty
-void NickelCloudWatcher::SyncNext()
+void NickelCloud::SyncNext()
 {
     if (SyncQueue.isEmpty())
     {

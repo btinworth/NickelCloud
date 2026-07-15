@@ -12,12 +12,12 @@ extern QObject* (*WirelessManagerInstance)();
 extern QObject* (*N3FSSyncManagerInstance)();
 extern void (*N3FSSyncManagerSync)(QObject*, QStringList*);
 
-class NickelCloudWatcher : public QObject
+class NickelCloud : public QObject
 {
     Q_OBJECT
 
 public:
-    NickelCloudWatcher();
+    NickelCloud();
 
 public slots:
     void OnNetworkConnected();
