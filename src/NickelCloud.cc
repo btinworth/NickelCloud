@@ -152,7 +152,7 @@ void NickelCloud::StartSync(const QString& source, const QString& dest)
          << "--transfers" << QString::number(Config.GetTransfers())
          << Config.GetExtraArgs();
 
-    Rclone.Start(RCLONE_BIN, args, source);
+    Rclone.Start(args, source);
 }
 
 // start the next queued sync, or finish the cycle if the queue is empty

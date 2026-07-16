@@ -13,7 +13,7 @@ class RcloneInterface : public QObject
 public:
     explicit RcloneInterface(QObject* parent = nullptr);
 
-    void Start(const QString& binary, const QStringList& args, const QString& source);
+    void Start(const QStringList& args, const QString& source);
 
 signals:
     void Finished(bool success, bool transferred);
