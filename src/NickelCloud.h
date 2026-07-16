@@ -1,9 +1,8 @@
 #pragma once
 
+#include "RcloneInterface.h"
 #include "UserConfig.h"
-#include <QByteArray>
 #include <QObject>
-#include <QProcess>
 #include <QQueue>
 #include <QString>
 #include <QTimer>
@@ -22,12 +21,10 @@ public:
 public slots:
     void OnNetworkConnected();
     void OnNetworkDisconnected();
-    void OnSyncFinished(int exitCode, QProcess::ExitStatus status);
-    void OnSyncError(QProcess::ProcessError error);
+    void OnRcloneFinished(bool success, bool transferred);
 
 private slots:
     void Sync();
-    void OnSyncOutput();
 
 private:
     static void CreateConfig(const char* filePath, const char* tmplFilePath);
@@ -36,13 +33,10 @@ private:
     void ScheduleNextSync();
     void StartSync(const QString& source, const QString& dest);
     void SyncNext();
-    void ReadSyncOutput(QProcess* rclone);
-    void FlushSyncOutput();
-    void HandleSyncOutputLine(const QString& line);
 
     UserConfig Config;
     QQueue<SyncPair> SyncQueue;
-    QByteArray PendingOutput;
+    RcloneInterface Rclone;
     bool AnyTransferred = false;
     bool AnyFailed = false;
     QTimer SyncTimer;
