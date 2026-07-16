@@ -24,8 +24,7 @@ private slots:
     void OnError(QProcess::ProcessError error);
 
 private:
-    void ReadOutput();
-    void FlushOutput();
+    void HandleOutput(bool handleRemainder);
     void HandleOutputLine(const QString& line);
 
     QProcess Process;

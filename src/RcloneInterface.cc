@@ -24,7 +24,7 @@ void RcloneInterface::Start(const QStringList& args, const QString& source)
 
 void RcloneInterface::OnOutput()
 {
-    ReadOutput();
+    HandleOutput(false);
 }
 
 void RcloneInterface::OnFinished(int exitCode, QProcess::ExitStatus status)
@@ -34,8 +34,7 @@ void RcloneInterface::OnFinished(int exitCode, QProcess::ExitStatus status)
         return;
     }
 
-    ReadOutput();
-    FlushOutput();
+    HandleOutput(true);
 
     bool success = false;
     if (status != QProcess::NormalExit)
@@ -65,11 +64,11 @@ void RcloneInterface::OnError(QProcess::ProcessError error)
 
     FailedToStart = true;
     nh_log("NickelCloud: rclone failed to start for %s", qPrintable(Source));
-    FlushOutput();
+    HandleOutput(true);
     emit Finished(false, Transferred);
 }
 
-void RcloneInterface::ReadOutput()
+void RcloneInterface::HandleOutput(bool handleRemainder)
 {
     PendingOutput += Process.readAllStandardOutput();
 
@@ -80,13 +79,13 @@ void RcloneInterface::ReadOutput()
         PendingOutput.remove(0, newline + 1);
         HandleOutputLine(line);
     }
-}
 
-void RcloneInterface::FlushOutput()
-{
-    auto line = QString::fromUtf8(PendingOutput).trimmed();
-    PendingOutput.clear();
-    HandleOutputLine(line);
+    if (handleRemainder)
+    {
+        auto line = QString::fromUtf8(PendingOutput).trimmed();
+        PendingOutput.clear();
+        HandleOutputLine(line);
+    }
 }
 
 void RcloneInterface::HandleOutputLine(const QString& line)
