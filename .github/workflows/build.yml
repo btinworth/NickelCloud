@@ -18,12 +18,7 @@ jobs:
           submodules: recursive
 
       - name: Build
-        run: |
-          docker run --rm \
-            -v "$PWD:$PWD" -w "$PWD" \
-            -u "$(id -u):$(id -g)" -e HOME=/tmp \
-            ghcr.io/pgaskin/nickeltc:1 \
-            sh -c 'make && make koboroot'
+        run: ./build.sh
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
