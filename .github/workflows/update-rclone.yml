@@ -49,7 +49,7 @@ jobs:
           branch_name="update-rclone"
 
           gh pr list --head "${branch_name}" --state open --json number --jq '.[].number' | while read -r pr; do
-            [[ -n "${pr}" ]] && gh pr close "${pr}"
+            [[ -n "${pr}" ]] && gh pr close "${pr}" --delete-branch
           done
 
           git config user.name "github-actions[bot]"
@@ -59,9 +59,25 @@ jobs:
           git add Makefile
 
           git commit -m "Update rclone to ${{ steps.version.outputs.latest }}"
-          git push --force-with-lease --set-upstream origin "${branch_name}"
+          git push --force --set-upstream origin "${branch_name}"
+
+          release_url="https://github.com/rclone/rclone/releases/tag/v${{ steps.version.outputs.latest }}"
+          release_notes="$(gh api "repos/rclone/rclone/releases/tags/v${{ steps.version.outputs.latest }}" --jq '.body' 2>/dev/null || true)"
+
+          {
+            echo "Updates rclone from ${{ steps.version.outputs.current }} to ${{ steps.version.outputs.latest }}."
+            echo
+            echo "Release: ${release_url}"
+            if [[ -n "${release_notes}" ]]; then
+              echo
+              echo "## Release notes"
+              echo
+              echo "${release_notes}"
+            fi
+          } > pr_body.md
 
           gh pr create \
             --head "${branch_name}" \
             --base "${{ github.ref_name }}" \
-            --fill
+            --title "Update rclone to ${{ steps.version.outputs.latest }}" \
+            --body-file pr_body.md
