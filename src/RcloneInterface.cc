@@ -1,11 +1,12 @@
 #include "RcloneInterface.h"
 #include "Constants.h"
 #include <NickelHook.h>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 RcloneInterface::RcloneInterface(QObject* parent)
     : QObject(parent)
 {
-    Process.setParent(this);
     Process.setProcessChannelMode(QProcess::MergedChannels);
 
     QObject::connect(&Process, &QProcess::readyReadStandardOutput, this, &RcloneInterface::OnOutput);
@@ -15,6 +16,12 @@ RcloneInterface::RcloneInterface(QObject* parent)
 
 void RcloneInterface::Start(const QStringList& args, const QString& source)
 {
+    if (Process.state() != QProcess::NotRunning)
+    {
+        nh_log("NickelCloud: rclone is already running, ignoring start request for %s", qPrintable(source));
+        return;
+    }
+
     Source = source;
     Transferred = false;
     FailedToStart = false;
@@ -106,11 +113,19 @@ void RcloneInterface::HandleOutputLine(const QString& line)
         return;
     }
 
-    if (line.contains(": Copied") || line.contains(": Deleted"))
+    auto doc = QJsonDocument::fromJson(line.toUtf8());
+    if (!doc.isObject())
+    {
+        return;
+    }
+
+    auto msg = doc.object().value("msg").toString();
+
+    if (msg.startsWith("Copied") || msg.startsWith("Deleted"))
     {
         // a file has changed, flag for library scan
         Transferred = true;
     }
 
-    nh_log("NickelCloud: %s", qPrintable(line));
+    nh_log(qPrintable(msg));
 }

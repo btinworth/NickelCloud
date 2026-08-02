@@ -149,6 +149,7 @@ void NickelCloud::StartSync(const QString& source, const QString& dest)
          << "--cache-dir" << CACHE_DIR
          << "--stats" << "0"
          << "--log-level" << "INFO"
+         << "--use-json-log"
          << "--transfers" << QString::number(Config.GetTransfers())
          << Config.GetExtraArgs();
 
