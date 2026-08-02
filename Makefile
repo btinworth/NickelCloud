@@ -1,6 +1,6 @@
 include NickelHook/NickelHook.mk
 
-RCLONE_VERSION ?= 1.74.4
+RCLONE_VERSION ?= 1.75.0
 
 override LIBRARY  := libnickelcloud.so
 override SOURCES  += $(sort $(wildcard src/*.cc))
