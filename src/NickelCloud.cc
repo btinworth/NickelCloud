@@ -15,7 +15,6 @@ QObject* (*N3FSSyncManagerInstance)() = nullptr;
 void (*N3FSSyncManagerSync)(QObject*, QStringList*) = nullptr;
 
 NickelCloud::NickelCloud()
-    : Rclone(this)
 {
     CreateConfig(RCLONE_CONF, RCLONE_TMPL);
     CreateConfig(NICKELCLOUD_CONF, NICKELCLOUD_TMPL);
@@ -39,11 +38,7 @@ void NickelCloud::OnNetworkDisconnected()
 
 void NickelCloud::OnRcloneFinished(bool success, bool transferred)
 {
-    if (!success)
-    {
-        AnyFailed = true;
-    }
-
+    AnyFailed |= !success;
     AnyTransferred |= transferred;
 
     SyncQueue.dequeue();

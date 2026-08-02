@@ -17,7 +17,7 @@ static int NickelCloudInit()
     return 0;
 }
 
-static struct nh_info NickelCloud = {
+static struct nh_info NickelCloudInfo = {
     .name = "NickelCloud",
     .desc = "Pull books from cloud storage into your library using rclone",
     .uninstall_flag = UNINSTALL_FLAG,
@@ -48,7 +48,7 @@ static struct nh_dlsym NickelCloudDlsym[] = {
 
 NickelHook(
     .init = NickelCloudInit,
-    .info = &NickelCloud,
+    .info = &NickelCloudInfo,
     .hook = NickelCloudHook,
     .dlsym = NickelCloudDlsym,
 )

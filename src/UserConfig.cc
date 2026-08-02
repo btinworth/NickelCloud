@@ -72,14 +72,14 @@ void UserConfig::Load(const QString& path)
         }
         else if (section == Section::Sources)
         {
-            auto path = ResolvePath(ONBOARD_DIR, value);
-            if (value.isEmpty() || path.isEmpty())
+            auto dest = ResolvePath(ONBOARD_DIR, value);
+            if (value.isEmpty() || dest.isEmpty())
             {
                 nh_log("NickelCloud: ignoring invalid destination: %s", qPrintable(value));
             }
             else
             {
-                Sources.enqueue({key, path});
+                Sources.enqueue({key, dest});
             }
         }
     }
@@ -129,13 +129,7 @@ int UserConfig::GetTransfers() const
 
 QStringList UserConfig::GetExtraArgs() const
 {
-    auto extraArgs = GetString("extra_args");
-    if (!extraArgs.isEmpty())
-    {
-        return extraArgs.split(' ', QString::SkipEmptyParts);
-    }
-
-    return QStringList();
+    return GetString("extra_args").split(' ', QString::SkipEmptyParts);
 }
 
 bool UserConfig::GetLogEnabled() const

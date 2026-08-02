@@ -22,17 +22,18 @@ private slots:
     void OnOutput();
     void OnFinished(int exitCode, QProcess::ExitStatus status);
     void OnError(QProcess::ProcessError error);
+    void EmitFinished();
 
 private:
     void OnComplete(bool success);
 
-    void HandleOutput(bool handleRemainder);
+    void HandleOutput(bool flush);
     void HandleOutputLine(const QString& line);
 
     QProcess Process;
     QByteArray PendingOutput;
     QString Source;
+    bool Success = false;
     bool Transferred = false;
-    bool FailedToStart = false;
     bool FinishedEmitted = false;
 };

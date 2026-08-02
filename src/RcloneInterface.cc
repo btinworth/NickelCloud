@@ -23,8 +23,8 @@ void RcloneInterface::Start(const QStringList& args, const QString& source)
     }
 
     Source = source;
+    Success = false;
     Transferred = false;
-    FailedToStart = false;
     FinishedEmitted = false;
     PendingOutput.clear();
     Process.start(RCLONE_BIN, args);
@@ -37,7 +37,7 @@ void RcloneInterface::OnOutput()
 
 void RcloneInterface::OnFinished(int exitCode, QProcess::ExitStatus status)
 {
-    if (FailedToStart)
+    if (FinishedEmitted)
     {
         return;
     }
@@ -68,40 +68,46 @@ void RcloneInterface::OnError(QProcess::ProcessError error)
         return;
     }
 
-    FailedToStart = true;
     nh_log("NickelCloud: rclone failed to start for %s", qPrintable(Source));
     OnComplete(false);
 }
 
 void RcloneInterface::OnComplete(bool success)
 {
-    HandleOutput(true);
-
     if (FinishedEmitted)
     {
         return;
     }
 
     FinishedEmitted = true;
-    emit Finished(success, Transferred);
+    Success = success;
+
+    HandleOutput(true);
+
+    // deferred so a handler can safely start the next run without re-entering this one
+    QMetaObject::invokeMethod(this, "EmitFinished", Qt::QueuedConnection);
 }
 
-void RcloneInterface::HandleOutput(bool handleRemainder)
+void RcloneInterface::EmitFinished()
+{
+    emit Finished(Success, Transferred);
+}
+
+void RcloneInterface::HandleOutput(bool flush)
 {
     PendingOutput += Process.readAllStandardOutput();
+
+    // treat unterminated trailing output as a final line
+    if (flush && !PendingOutput.isEmpty() && !PendingOutput.endsWith('\n'))
+    {
+        PendingOutput += '\n';
+    }
 
     int newline;
     while ((newline = PendingOutput.indexOf('\n')) >= 0)
     {
         auto line = QString::fromUtf8(PendingOutput.left(newline)).trimmed();
         PendingOutput.remove(0, newline + 1);
-        HandleOutputLine(line);
-    }
-
-    if (handleRemainder)
-    {
-        auto line = QString::fromUtf8(PendingOutput).trimmed();
-        PendingOutput.clear();
         HandleOutputLine(line);
     }
 }
@@ -113,19 +119,12 @@ void RcloneInterface::HandleOutputLine(const QString& line)
         return;
     }
 
-    auto doc = QJsonDocument::fromJson(line.toUtf8());
-    if (!doc.isObject())
-    {
-        return;
-    }
-
-    auto msg = doc.object().value("msg").toString();
-
-    if (msg.startsWith("Copied") || msg.startsWith("Deleted"))
+    auto msg = QJsonDocument::fromJson(line.toUtf8()).object().value("msg").toString();
+    if (msg.startsWith("Copied") || msg.startsWith("Moved") || msg.startsWith("Renamed") || msg.startsWith("Deleted"))
     {
         // a file has changed, flag for library scan
         Transferred = true;
     }
 
-    nh_log(qPrintable(msg));
+    nh_log("NickelCloud: %s", qPrintable(line));
 }
