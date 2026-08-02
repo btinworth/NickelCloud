@@ -1,4 +1,5 @@
 #include "RcloneInterface.h"
+#include "Constants.h"
 #include <NickelHook.h>
 
 RcloneInterface::RcloneInterface(QObject* parent)
@@ -12,13 +13,13 @@ RcloneInterface::RcloneInterface(QObject* parent)
     QObject::connect(&Process, static_cast<void (QProcess::*)(QProcess::ProcessError)>(&QProcess::error), this, &RcloneInterface::OnError);
 }
 
-void RcloneInterface::Start(const QString& binary, const QStringList& args, const QString& source)
+void RcloneInterface::Start(const QStringList& args, const QString& source)
 {
     Source = source;
     Transferred = false;
     FailedToStart = false;
     PendingOutput.clear();
-    Process.start(binary, args);
+    Process.start(RCLONE_BIN, args);
 }
 
 void RcloneInterface::OnOutput()
