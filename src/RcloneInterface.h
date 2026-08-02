@@ -24,6 +24,8 @@ private slots:
     void OnError(QProcess::ProcessError error);
 
 private:
+    void OnComplete(bool success);
+
     void HandleOutput(bool handleRemainder);
     void HandleOutputLine(const QString& line);
 
@@ -32,4 +34,5 @@ private:
     QString Source;
     bool Transferred = false;
     bool FailedToStart = false;
+    bool FinishedEmitted = false;
 };

@@ -18,6 +18,7 @@ void RcloneInterface::Start(const QStringList& args, const QString& source)
     Source = source;
     Transferred = false;
     FailedToStart = false;
+    FinishedEmitted = false;
     PendingOutput.clear();
     Process.start(RCLONE_BIN, args);
 }
@@ -34,8 +35,6 @@ void RcloneInterface::OnFinished(int exitCode, QProcess::ExitStatus status)
         return;
     }
 
-    HandleOutput(true);
-
     bool success = false;
     if (status != QProcess::NormalExit)
     {
@@ -51,7 +50,7 @@ void RcloneInterface::OnFinished(int exitCode, QProcess::ExitStatus status)
         nh_log("NickelCloud: rclone failed for %s (exit %d)", qPrintable(Source), exitCode);
     }
 
-    emit Finished(success, Transferred);
+    OnComplete(success);
 }
 
 void RcloneInterface::OnError(QProcess::ProcessError error)
@@ -64,8 +63,20 @@ void RcloneInterface::OnError(QProcess::ProcessError error)
 
     FailedToStart = true;
     nh_log("NickelCloud: rclone failed to start for %s", qPrintable(Source));
+    OnComplete(false);
+}
+
+void RcloneInterface::OnComplete(bool success)
+{
     HandleOutput(true);
-    emit Finished(false, Transferred);
+
+    if (FinishedEmitted)
+    {
+        return;
+    }
+
+    FinishedEmitted = true;
+    emit Finished(success, Transferred);
 }
 
 void RcloneInterface::HandleOutput(bool handleRemainder)
