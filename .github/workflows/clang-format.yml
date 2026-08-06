@@ -1,0 +1,27 @@
+name: Clang Format
+
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  clang-format:
+    name: Clang Format
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          enable-cache: false
+
+      - name: Run clang-format
+        run: |
+          uv tool run \
+            clang-format --style=file --dry-run --Werror src/*.cc src/*.h
