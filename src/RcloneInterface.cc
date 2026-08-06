@@ -16,18 +16,23 @@ RcloneInterface::RcloneInterface(QObject* parent)
 
 void RcloneInterface::Start(const QStringList& args, const QString& source)
 {
-    if (Process.state() != QProcess::NotRunning)
-    {
-        nh_log("NickelCloud: rclone is already running, ignoring start request for %s", qPrintable(source));
-        return;
-    }
-
     Source = source;
     Success = false;
     Transferred = false;
     FinishedEmitted = false;
     PendingOutput.clear();
     Process.start(RCLONE_BIN, args);
+}
+
+void RcloneInterface::Stop()
+{
+    if (Process.state() == QProcess::NotRunning)
+    {
+        return;
+    }
+
+    nh_log("NickelCloud: stopping rclone for %s", qPrintable(Source));
+    Process.terminate();
 }
 
 void RcloneInterface::OnOutput()

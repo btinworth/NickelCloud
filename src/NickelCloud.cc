@@ -34,6 +34,7 @@ void NickelCloud::OnNetworkConnected()
 void NickelCloud::OnNetworkDisconnected()
 {
     SyncTimer.stop();
+    Rclone.Stop();
 }
 
 void NickelCloud::OnRcloneFinished(bool success, bool transferred)

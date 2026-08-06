@@ -14,6 +14,7 @@ public:
     explicit RcloneInterface(QObject* parent = nullptr);
 
     void Start(const QStringList& args, const QString& source);
+    void Stop();
 
 signals:
     void Finished(bool success, bool transferred);
