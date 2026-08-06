@@ -7,7 +7,7 @@ static int NickelCloudInit()
     auto* wm = WirelessManagerInstance();
     if (wm == nullptr)
     {
-        nh_log("NickelCloud: could not get WirelessManager instance");
+        nh_log("could not get WirelessManager instance");
         return 0;
     }
 

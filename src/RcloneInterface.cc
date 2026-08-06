@@ -31,7 +31,7 @@ void RcloneInterface::Stop()
         return;
     }
 
-    nh_log("NickelCloud: stopping rclone for %s", qPrintable(Source));
+    nh_log("stopping rclone for %s", qPrintable(Source));
     Process.terminate();
 }
 
@@ -50,16 +50,16 @@ void RcloneInterface::OnFinished(int exitCode, QProcess::ExitStatus status)
     bool success = false;
     if (status != QProcess::NormalExit)
     {
-        nh_log("NickelCloud: rclone crashed for %s", qPrintable(Source));
+        nh_log("rclone crashed for %s", qPrintable(Source));
     }
     else if (exitCode == 0)
     {
         success = true;
-        nh_log("NickelCloud: rclone completed successfully for %s", qPrintable(Source));
+        nh_log("rclone completed successfully for %s", qPrintable(Source));
     }
     else
     {
-        nh_log("NickelCloud: rclone failed for %s (exit %d)", qPrintable(Source), exitCode);
+        nh_log("rclone failed for %s (exit %d)", qPrintable(Source), exitCode);
     }
 
     OnComplete(success);
@@ -73,7 +73,7 @@ void RcloneInterface::OnError(QProcess::ProcessError error)
         return;
     }
 
-    nh_log("NickelCloud: rclone failed to start for %s", qPrintable(Source));
+    nh_log("rclone failed to start for %s", qPrintable(Source));
     OnComplete(false);
 }
 
@@ -131,5 +131,5 @@ void RcloneInterface::HandleOutputLine(const QString& line)
         Transferred = true;
     }
 
-    nh_log("NickelCloud: %s", qPrintable(line));
+    nh_log("%s", qPrintable(line));
 }

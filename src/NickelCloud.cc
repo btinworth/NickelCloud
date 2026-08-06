@@ -58,7 +58,7 @@ void NickelCloud::Sync()
 
     if (SyncQueue.isEmpty())
     {
-        nh_log("NickelCloud: no sources configured");
+        nh_log("no sources configured");
         ScheduleNextSync();
         return;
     }
@@ -66,7 +66,7 @@ void NickelCloud::Sync()
     AnyTransferred = false;
     AnyFailed = false;
 
-    nh_log("NickelCloud: pulling %d source(s) from cloud", SyncQueue.size());
+    nh_log("pulling %d source(s) from cloud", SyncQueue.size());
     SyncNext();
 }
 
@@ -74,7 +74,7 @@ void NickelCloud::CreateConfig(const char* filePath, const char* tmplFilePath)
 {
     if (!QDir().mkpath(CONFIG_DIR))
     {
-        nh_log("NickelCloud: failed to create config directory: %s", CONFIG_DIR);
+        nh_log("failed to create config directory: %s", CONFIG_DIR);
         return;
     }
 
@@ -85,11 +85,11 @@ void NickelCloud::CreateConfig(const char* filePath, const char* tmplFilePath)
 
     if (QFile::copy(tmplFilePath, filePath))
     {
-        nh_log("NickelCloud: created config from template: %s", filePath);
+        nh_log("created config from template: %s", filePath);
     }
     else
     {
-        nh_log("NickelCloud: failed to create config from template: %s -> %s", tmplFilePath, filePath);
+        nh_log("failed to create config from template: %s -> %s", tmplFilePath, filePath);
     }
 }
 
@@ -128,14 +128,14 @@ void NickelCloud::StartSync(const QString& source, const QString& dest)
     if (!QDir().mkpath(dest))
     {
         AnyFailed = true;
-        nh_log("NickelCloud: failed to create destination directory for %s: %s", qPrintable(source), qPrintable(dest));
+        nh_log("failed to create destination directory for %s: %s", qPrintable(source), qPrintable(dest));
 
         SyncQueue.dequeue();
         SyncNext();
         return;
     }
 
-    nh_log("NickelCloud: syncing %s -> %s", qPrintable(source), qPrintable(dest));
+    nh_log("syncing %s -> %s", qPrintable(source), qPrintable(dest));
 
     QStringList args;
     args << Config.GetMode()

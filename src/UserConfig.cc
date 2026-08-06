@@ -12,7 +12,7 @@ void UserConfig::Load(const QString& path)
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
-        nh_log("NickelCloud: could not open config '%s': %s", qPrintable(path), qPrintable(file.errorString()));
+        nh_log("could not open config '%s': %s", qPrintable(path), qPrintable(file.errorString()));
         return;
     }
 
@@ -39,7 +39,7 @@ void UserConfig::Load(const QString& path)
             }
             else
             {
-                nh_log("NickelCloud: ignoring unknown config section: %s", qPrintable(line));
+                nh_log("ignoring unknown config section: %s", qPrintable(line));
                 section = Section::None;
             }
             continue;
@@ -47,14 +47,14 @@ void UserConfig::Load(const QString& path)
 
         if (section == Section::None)
         {
-            nh_log("NickelCloud: ignoring line outside of a section: %s", qPrintable(line));
+            nh_log("ignoring line outside of a section: %s", qPrintable(line));
             continue;
         }
 
         auto equals = line.indexOf('=');
         if (equals < 0)
         {
-            nh_log("NickelCloud: ignoring line without '=': %s", qPrintable(line));
+            nh_log("ignoring line without '=': %s", qPrintable(line));
             continue;
         }
 
@@ -62,7 +62,7 @@ void UserConfig::Load(const QString& path)
         auto value = line.mid(equals + 1).trimmed();
         if (key.isEmpty())
         {
-            nh_log("NickelCloud: ignoring malformed line: %s", qPrintable(line));
+            nh_log("ignoring malformed line: %s", qPrintable(line));
             continue;
         }
 
@@ -75,7 +75,7 @@ void UserConfig::Load(const QString& path)
             auto dest = ResolvePath(ONBOARD_DIR, value);
             if (value.isEmpty() || dest.isEmpty())
             {
-                nh_log("NickelCloud: ignoring invalid destination: %s", qPrintable(value));
+                nh_log("ignoring invalid destination: %s", qPrintable(value));
             }
             else
             {
@@ -95,7 +95,7 @@ QString UserConfig::GetMode() const
         return mode;
     }
 
-    nh_log("NickelCloud: ignoring invalid mode '%s', defaulting to '%s'", qPrintable(mode), qPrintable(DEFAULT_MODE));
+    nh_log("ignoring invalid mode '%s', defaulting to '%s'", qPrintable(mode), qPrintable(DEFAULT_MODE));
     return DEFAULT_MODE;
 }
 
@@ -106,7 +106,7 @@ int UserConfig::GetInterval() const
     auto interval = GetInt("interval", DEFAULT_INTERVAL);
     if (interval < 0)
     {
-        nh_log("NickelCloud: ignoring negative interval '%d', defaulting to %d", interval, DEFAULT_INTERVAL);
+        nh_log("ignoring negative interval '%d', defaulting to %d", interval, DEFAULT_INTERVAL);
         return DEFAULT_INTERVAL;
     }
 
@@ -123,7 +123,7 @@ int UserConfig::GetTransfers() const
         return transfers;
     }
 
-    nh_log("NickelCloud: ignoring invalid transfers value '%d', defaulting to %d", transfers, DEFAULT_TRANSFERS);
+    nh_log("ignoring invalid transfers value '%d', defaulting to %d", transfers, DEFAULT_TRANSFERS);
     return DEFAULT_TRANSFERS;
 }
 
