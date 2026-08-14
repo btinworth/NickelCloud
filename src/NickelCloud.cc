@@ -42,7 +42,11 @@ void NickelCloud::OnRcloneFinished(bool success, bool transferred)
     AnyFailed |= !success;
     AnyTransferred |= transferred;
 
-    SyncQueue.dequeue();
+    if (!SyncQueue.isEmpty())
+    {
+        SyncQueue.dequeue();
+    }
+
     SyncNext();
 }
 
@@ -130,7 +134,11 @@ void NickelCloud::StartSync(const QString& source, const QString& dest)
         AnyFailed = true;
         nh_log("failed to create destination directory for %s: %s", qPrintable(source), qPrintable(dest));
 
-        SyncQueue.dequeue();
+        if (!SyncQueue.isEmpty())
+        {
+            SyncQueue.dequeue();
+        }
+
         SyncNext();
         return;
     }
@@ -171,8 +179,18 @@ void NickelCloud::SyncNext()
                 paths.append(pair.dest);
             }
 
-            auto* fss = N3FSSyncManagerInstance();
-            N3FSSyncManagerSync(fss, &paths);
+            if (N3FSSyncManagerInstance != nullptr && N3FSSyncManagerSync != nullptr)
+            {
+                auto* fss = N3FSSyncManagerInstance();
+                if (fss != nullptr)
+                {
+                    N3FSSyncManagerSync(fss, &paths);
+                }
+            }
+            else
+            {
+                nh_log("N3FSSyncManager unavailable, skipping library scan");
+            }
         }
 
         ScheduleNextSync();
