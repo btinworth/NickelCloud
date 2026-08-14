@@ -39,5 +39,6 @@ private:
     RcloneInterface Rclone;
     bool AnyTransferred = false;
     bool AnyFailed = false;
+    bool Offline = false;
     QTimer SyncTimer;
 };

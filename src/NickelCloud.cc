@@ -28,13 +28,16 @@ NickelCloud::NickelCloud()
 
 void NickelCloud::OnNetworkConnected()
 {
+    Offline = false;
     Sync();
 }
 
 void NickelCloud::OnNetworkDisconnected()
 {
+    Offline = true;
     SyncTimer.stop();
     Rclone.Stop();
+    SyncQueue.clear();
 }
 
 void NickelCloud::OnRcloneFinished(bool success, bool transferred)
@@ -121,6 +124,11 @@ void NickelCloud::UpdateSyncTimer()
 
 void NickelCloud::ScheduleNextSync()
 {
+    if (Offline)
+    {
+        return;
+    }
+
     if (Config.GetInterval() > 0)
     {
         SyncTimer.start();
