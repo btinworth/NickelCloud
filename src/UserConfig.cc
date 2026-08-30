@@ -77,6 +77,10 @@ void UserConfig::Load(const QString& path)
             {
                 nh_log("ignoring invalid destination: %s", qPrintable(value));
             }
+            else if (Sources.contains({key, dest}))
+            {
+                nh_log("ignoring duplicate source: %s = %s", qPrintable(key), qPrintable(value));
+            }
             else
             {
                 Sources.enqueue({key, dest});

@@ -159,6 +159,31 @@ void ConfigTest::sources_preservesDuplicateSourceOrder()
     QCOMPARE(sources.at(1).dest, QString(ONBOARD_DIR) + "/Fiction");
 }
 
+void ConfigTest::sources_ignoresExactDuplicates()
+{
+    auto config = LoadConfig(
+        "[sources]\n"
+        "OneDrive:eBooks = Books\n"
+        "OneDrive:eBooks = Books\n");
+
+    auto sources = config.GetSources();
+    QCOMPARE(sources.size(), 1);
+    QCOMPARE(sources.at(0).source, QString("OneDrive:eBooks"));
+    QCOMPARE(sources.at(0).dest, QString(ONBOARD_DIR) + "/Books");
+}
+
+void ConfigTest::sources_ignoresDuplicatesThatNormalizeToTheSameDestination()
+{
+    auto config = LoadConfig(
+        "[sources]\n"
+        "OneDrive:eBooks = Books\n"
+        "OneDrive:eBooks = ./Books/\n");
+
+    auto sources = config.GetSources();
+    QCOMPARE(sources.size(), 1);
+    QCOMPARE(sources.at(0).dest, QString(ONBOARD_DIR) + "/Books");
+}
+
 void ConfigTest::sources_trimsWhitespaceAroundKeyAndValue()
 {
     auto config = LoadConfig(

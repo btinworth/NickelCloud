@@ -10,6 +10,11 @@ struct SyncPair
     QString dest;
 };
 
+inline bool operator==(const SyncPair& lhs, const SyncPair& rhs)
+{
+    return lhs.source == rhs.source && lhs.dest == rhs.dest;
+}
+
 class UserConfig
 {
 public:

@@ -23,6 +23,8 @@ private slots:
     void sources_rejectsExcessiveParentTraversal();
     void sources_doesNotEscapeViaEmbeddedAbsolutePath();
     void sources_preservesDuplicateSourceOrder();
+    void sources_ignoresExactDuplicates();
+    void sources_ignoresDuplicatesThatNormalizeToTheSameDestination();
     void sources_trimsWhitespaceAroundKeyAndValue();
 
     void sections_areCaseInsensitive();
