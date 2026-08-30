@@ -1,4 +1,5 @@
 #include "Constants.h"
+#include "Log.h"
 #include "NickelCloud.h"
 #include <NickelHook.h>
 #include <QDir>
@@ -15,7 +16,7 @@ static int NickelCloudInit()
     }
     else
     {
-        nh_log("could not get WirelessManager instance, syncing will not respond to network changes");
+        Log("could not get WirelessManager instance, syncing will not respond to network changes");
         return 1;
     }
 
@@ -27,7 +28,7 @@ static int NickelCloudInit()
     }
     else
     {
-        nh_log("could not get PlugWorkflowManager instance, syncing will not pause for USB");
+        Log("could not get PlugWorkflowManager instance, syncing will not pause for USB");
     }
 
     return 0;
@@ -35,7 +36,7 @@ static int NickelCloudInit()
 
 static bool NickelCloudUninstall()
 {
-    nh_log("removing NickelCloud config and program files");
+    Log("removing NickelCloud config and program files");
 
     const char* const dirs[] = {CONFIG_DIR, INSTALL_DIR};
 

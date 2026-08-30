@@ -11,6 +11,8 @@ extern const char* const NICKELCLOUD_TMPL;
 extern const char* const CONFIG_DIR;
 extern const char* const RCLONE_CONF;
 extern const char* const NICKELCLOUD_CONF;
+extern const char* const NICKELCLOUD_LOG;
+extern const char* const NICKELCLOUD_LOG_OLD;
 extern const char* const TMP_DIR;
 extern const char* const CACHE_DIR;
 extern const char* const UNINSTALL_FLAG;

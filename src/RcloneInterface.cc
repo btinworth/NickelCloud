@@ -1,6 +1,6 @@
 #include "RcloneInterface.h"
 #include "Constants.h"
-#include <NickelHook.h>
+#include "Log.h"
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QProcessEnvironment>
@@ -49,14 +49,14 @@ void RcloneInterface::Stop()
         return;
     }
 
-    nh_log("stopping rclone for %s", qPrintable(Source));
+    Log("stopping rclone for %s", qPrintable(Source));
     Stopping = true;
 
     Process.terminate();
 
     if (!Process.waitForFinished(TERMINATE_TIMEOUT_MS))
     {
-        nh_log("rclone did not exit, killing it");
+        Log("rclone did not exit, killing it");
         Process.kill();
         Process.waitForFinished(KILL_TIMEOUT_MS);
     }
@@ -77,7 +77,7 @@ void RcloneInterface::OnFinished(int exitCode, QProcess::ExitStatus status)
     if (Stopping)
     {
         // nonzero exit is not a sync failure here
-        nh_log("rclone stopped for %s", qPrintable(Source));
+        Log("rclone stopped for %s", qPrintable(Source));
         OnComplete(true);
         return;
     }
@@ -85,16 +85,16 @@ void RcloneInterface::OnFinished(int exitCode, QProcess::ExitStatus status)
     bool success = false;
     if (status != QProcess::NormalExit)
     {
-        nh_log("rclone crashed for %s", qPrintable(Source));
+        Log("rclone crashed for %s", qPrintable(Source));
     }
     else if (exitCode == 0)
     {
         success = true;
-        nh_log("rclone completed successfully for %s", qPrintable(Source));
+        Log("rclone completed successfully for %s", qPrintable(Source));
     }
     else
     {
-        nh_log("rclone failed for %s (exit %d)", qPrintable(Source), exitCode);
+        Log("rclone failed for %s (exit %d)", qPrintable(Source), exitCode);
     }
 
     OnComplete(success);
@@ -108,7 +108,7 @@ void RcloneInterface::OnError(QProcess::ProcessError error)
         return;
     }
 
-    nh_log("rclone failed to start for %s", qPrintable(Source));
+    Log("rclone failed to start for %s", qPrintable(Source));
     OnComplete(false);
 }
 
@@ -165,5 +165,5 @@ void RcloneInterface::HandleOutputLine(const QString& line)
         Transferred = true;
     }
 
-    nh_log("%s", qPrintable(line));
+    Log("%s", qPrintable(line));
 }

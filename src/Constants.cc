@@ -11,6 +11,8 @@ const char* const NICKELCLOUD_TMPL = "/usr/local/nickelcloud/nickelcloud.conf.tm
 const char* const CONFIG_DIR = "/mnt/onboard/.adds/nickelcloud";
 const char* const RCLONE_CONF = "/mnt/onboard/.adds/nickelcloud/rclone.conf";
 const char* const NICKELCLOUD_CONF = "/mnt/onboard/.adds/nickelcloud/nickelcloud.conf";
+const char* const NICKELCLOUD_LOG = "/mnt/onboard/.adds/nickelcloud/nickelcloud.log";
+const char* const NICKELCLOUD_LOG_OLD = "/mnt/onboard/.adds/nickelcloud/nickelcloud.log.old";
 const char* const UNINSTALL_FLAG = "/mnt/onboard/.adds/nickelcloud/uninstall";
 
 const char* const TMP_DIR = "/tmp";

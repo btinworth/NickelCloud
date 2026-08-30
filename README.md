@@ -48,7 +48,7 @@ In `[general]` inside `nickelcloud.conf`:
 | `transfers` | `1` | Number of simultaneous file transfers. |
 | `checkers` | `1` | Number of simultaneous file comparisons. Raising this speeds up large libraries but costs CPU and battery. |
 | `buffer_size` | `1` | Read buffer per transfer, in MiB. Raising this uses more RAM. `0` disables buffering. |
-| `log` | `false` | If `true`, writes logs to `/mnt/onboard` when changes/failures occur. |
+| `log` | `false` | If `true`, writes activity to `.adds/nickelcloud/nickelcloud.log`. |
 
 ## Uninstall
 

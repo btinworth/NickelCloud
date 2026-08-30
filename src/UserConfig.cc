@@ -1,6 +1,6 @@
 #include "UserConfig.h"
 #include "Constants.h"
-#include <NickelHook.h>
+#include "Log.h"
 #include <QDir>
 #include <QFile>
 
@@ -12,7 +12,7 @@ void UserConfig::Load(const QString& path)
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
-        nh_log("could not open config '%s': %s", qPrintable(path), qPrintable(file.errorString()));
+        Log("could not open config '%s': %s", qPrintable(path), qPrintable(file.errorString()));
         return;
     }
 
@@ -39,7 +39,7 @@ void UserConfig::Load(const QString& path)
             }
             else
             {
-                nh_log("ignoring unknown config section: %s", qPrintable(line));
+                Log("ignoring unknown config section: %s", qPrintable(line));
                 section = Section::None;
             }
             continue;
@@ -47,14 +47,14 @@ void UserConfig::Load(const QString& path)
 
         if (section == Section::None)
         {
-            nh_log("ignoring line outside of a section: %s", qPrintable(line));
+            Log("ignoring line outside of a section: %s", qPrintable(line));
             continue;
         }
 
         auto equals = line.indexOf('=');
         if (equals < 0)
         {
-            nh_log("ignoring line without '=': %s", qPrintable(line));
+            Log("ignoring line without '=': %s", qPrintable(line));
             continue;
         }
 
@@ -62,7 +62,7 @@ void UserConfig::Load(const QString& path)
         auto value = line.mid(equals + 1).trimmed();
         if (key.isEmpty())
         {
-            nh_log("ignoring malformed line: %s", qPrintable(line));
+            Log("ignoring malformed line: %s", qPrintable(line));
             continue;
         }
 
@@ -75,11 +75,11 @@ void UserConfig::Load(const QString& path)
             auto dest = ResolvePath(ONBOARD_DIR, value);
             if (value.isEmpty() || dest.isEmpty())
             {
-                nh_log("ignoring invalid destination: %s", qPrintable(value));
+                Log("ignoring invalid destination: %s", qPrintable(value));
             }
             else if (Sources.contains({key, dest}))
             {
-                nh_log("ignoring duplicate source: %s = %s", qPrintable(key), qPrintable(value));
+                Log("ignoring duplicate source: %s = %s", qPrintable(key), qPrintable(value));
             }
             else
             {
@@ -99,7 +99,7 @@ QString UserConfig::GetMode() const
         return mode;
     }
 
-    nh_log("ignoring invalid mode '%s', defaulting to '%s'", qPrintable(mode), qPrintable(DEFAULT_MODE));
+    Log("ignoring invalid mode '%s', defaulting to '%s'", qPrintable(mode), qPrintable(DEFAULT_MODE));
     return DEFAULT_MODE;
 }
 
@@ -110,7 +110,7 @@ int UserConfig::GetInterval() const
     auto interval = GetInt("interval", DEFAULT_INTERVAL);
     if (interval < 0)
     {
-        nh_log("ignoring negative interval '%d', defaulting to %d", interval, DEFAULT_INTERVAL);
+        Log("ignoring negative interval '%d', defaulting to %d", interval, DEFAULT_INTERVAL);
         return DEFAULT_INTERVAL;
     }
 
@@ -127,7 +127,7 @@ int UserConfig::GetTransfers() const
         return transfers;
     }
 
-    nh_log("ignoring invalid transfers value '%d', defaulting to %d", transfers, DEFAULT_TRANSFERS);
+    Log("ignoring invalid transfers value '%d', defaulting to %d", transfers, DEFAULT_TRANSFERS);
     return DEFAULT_TRANSFERS;
 }
 
@@ -141,7 +141,7 @@ int UserConfig::GetCheckers() const
         return checkers;
     }
 
-    nh_log("ignoring invalid checkers value '%d', defaulting to %d", checkers, DEFAULT_CHECKERS);
+    Log("ignoring invalid checkers value '%d', defaulting to %d", checkers, DEFAULT_CHECKERS);
     return DEFAULT_CHECKERS;
 }
 
@@ -156,7 +156,7 @@ int UserConfig::GetBufferSize() const
         return bufferSize;
     }
 
-    nh_log("ignoring negative buffer_size '%d', defaulting to %d", bufferSize, DEFAULT_BUFFER_SIZE);
+    Log("ignoring negative buffer_size '%d', defaulting to %d", bufferSize, DEFAULT_BUFFER_SIZE);
     return DEFAULT_BUFFER_SIZE;
 }
 
