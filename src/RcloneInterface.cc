@@ -4,6 +4,12 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
+namespace
+{
+constexpr int TERMINATE_TIMEOUT_MS = 5000;
+constexpr int KILL_TIMEOUT_MS = 2000;
+}
+
 RcloneInterface::RcloneInterface(QObject* parent)
     : QObject(parent)
 {
@@ -16,9 +22,12 @@ RcloneInterface::RcloneInterface(QObject* parent)
 
 void RcloneInterface::Start(const QStringList& args, const QString& source)
 {
+    // QProcess::start() is a no-op while a process is running
+    Stop();
+
     Source = source;
-    Success = false;
     Transferred = false;
+    Stopping = false;
     FinishedEmitted = false;
     PendingOutput.clear();
     Process.start(RCLONE_BIN, args);
@@ -32,7 +41,16 @@ void RcloneInterface::Stop()
     }
 
     nh_log("stopping rclone for %s", qPrintable(Source));
+    Stopping = true;
+
     Process.terminate();
+
+    if (!Process.waitForFinished(TERMINATE_TIMEOUT_MS))
+    {
+        nh_log("rclone did not exit, killing it");
+        Process.kill();
+        Process.waitForFinished(KILL_TIMEOUT_MS);
+    }
 }
 
 void RcloneInterface::OnOutput()
@@ -44,6 +62,14 @@ void RcloneInterface::OnFinished(int exitCode, QProcess::ExitStatus status)
 {
     if (FinishedEmitted)
     {
+        return;
+    }
+
+    if (Stopping)
+    {
+        // nonzero exit is not a sync failure here
+        nh_log("rclone stopped for %s", qPrintable(Source));
+        OnComplete(true);
         return;
     }
 
@@ -85,17 +111,16 @@ void RcloneInterface::OnComplete(bool success)
     }
 
     FinishedEmitted = true;
-    Success = success;
 
     HandleOutput(true);
 
     // deferred so a handler can safely start the next run without re-entering this one
-    QMetaObject::invokeMethod(this, "EmitFinished", Qt::QueuedConnection);
+    QMetaObject::invokeMethod(this, "EmitFinished", Qt::QueuedConnection, Q_ARG(bool, success), Q_ARG(bool, Transferred));
 }
 
-void RcloneInterface::EmitFinished()
+void RcloneInterface::EmitFinished(bool success, bool transferred)
 {
-    emit Finished(Success, Transferred);
+    emit Finished(success, transferred);
 }
 
 void RcloneInterface::HandleOutput(bool flush)

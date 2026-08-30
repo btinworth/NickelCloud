@@ -23,7 +23,7 @@ private slots:
     void OnOutput();
     void OnFinished(int exitCode, QProcess::ExitStatus status);
     void OnError(QProcess::ProcessError error);
-    void EmitFinished();
+    void EmitFinished(bool success, bool transferred);
 
 private:
     void OnComplete(bool success);
@@ -34,7 +34,7 @@ private:
     QProcess Process;
     QByteArray PendingOutput;
     QString Source;
-    bool Success = false;
     bool Transferred = false;
+    bool Stopping = false;
     bool FinishedEmitted = false;
 };

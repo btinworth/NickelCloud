@@ -61,6 +61,9 @@ void NickelCloud::Sync()
         return;
     }
 
+    // a cycle is starting now, so any pending tick is stale
+    SyncTimer.stop();
+
     ReadConfig();
 
     if (SyncQueue.isEmpty())
