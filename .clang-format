@@ -1,6 +1,7 @@
 AccessModifierOffset: -4
 BasedOnStyle: Microsoft
 ColumnLimit: 0
+FixNamespaceComments: false
 IndentAccessModifiers: false
 IndentWidth: 4
 PointerAlignment: Left
