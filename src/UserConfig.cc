@@ -156,11 +156,6 @@ int UserConfig::GetBufferSize() const
     return DEFAULT_BUFFER_SIZE;
 }
 
-QStringList UserConfig::GetExtraArgs() const
-{
-    return GetString("extra_args").split(' ', QString::SkipEmptyParts);
-}
-
 bool UserConfig::GetLogEnabled() const
 {
     return GetBool("log", false);

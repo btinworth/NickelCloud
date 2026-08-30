@@ -172,8 +172,7 @@ void NickelCloud::StartSync(const QString& source, const QString& dest)
          << "--contimeout" << "30s"
          << "--timeout" << "60s"
          << "--retries" << "1"
-         << "--low-level-retries" << "3"
-         << Config.GetExtraArgs();
+         << "--low-level-retries" << "3";
 
     Rclone.Start(args, source);
 }

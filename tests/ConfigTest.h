@@ -42,9 +42,6 @@ private slots:
     void transfers_zeroFallsBackToDefault();
     void transfers_negativeFallsBackToDefault();
 
-    void extraArgs_emptyByDefault();
-    void extraArgs_splitsOnSpaces();
-
     void logEnabled_defaultsToFalse();
     void logEnabled_acceptsTruthyValues();
     void logEnabled_acceptsFalsyValues();

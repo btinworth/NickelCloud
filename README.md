@@ -49,7 +49,6 @@ In `[general]` inside `nickelcloud.conf`:
 | `checkers` | `1` | Number of simultaneous file comparisons. Raising this speeds up large libraries but costs CPU and battery. |
 | `buffer_size` | `1` | Read buffer per transfer, in MiB. Raising this uses more RAM. `0` disables buffering. |
 | `log` | `false` | If `true`, writes logs to `/mnt/onboard` when changes/failures occur. |
-| `extra_args` | (empty) | Extra rclone flags, space-separated. |
 
 ## Uninstall
 

@@ -194,9 +194,11 @@ void ConfigTest::general_allowsEmptyValue()
 {
     auto config = LoadConfig(
         "[general]\n"
-        "extra_args = # nothing set\n");
+        "mode = # nothing set\n"
+        "transfers = 3\n");
 
-    QVERIFY(config.GetExtraArgs().isEmpty());
+    QCOMPARE(config.GetMode(), QString("copy"));
+    QCOMPARE(config.GetTransfers(), 3);
 }
 
 void ConfigTest::mode_defaultsToCopy()
@@ -252,18 +254,6 @@ void ConfigTest::transfers_negativeFallsBackToDefault()
 {
     auto config = LoadConfig("[general]\ntransfers = -3\n");
     QCOMPARE(config.GetTransfers(), 1);
-}
-
-void ConfigTest::extraArgs_emptyByDefault()
-{
-    auto config = LoadConfig("[general]\n");
-    QVERIFY(config.GetExtraArgs().isEmpty());
-}
-
-void ConfigTest::extraArgs_splitsOnSpaces()
-{
-    auto config = LoadConfig("[general]\nextra_args = --bwlimit 1M --dry-run\n");
-    QCOMPARE(config.GetExtraArgs(), QStringList({"--bwlimit", "1M", "--dry-run"}));
 }
 
 void ConfigTest::logEnabled_defaultsToFalse()
