@@ -3,6 +3,7 @@
 #include <NickelHook.h>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QProcessEnvironment>
 
 namespace
 {
@@ -14,6 +15,14 @@ RcloneInterface::RcloneInterface(QObject* parent)
     : QObject(parent)
 {
     Process.setProcessChannelMode(QProcess::MergedChannels);
+
+    // don't inherit Nickel's environment, which points the loader at its own Qt libraries
+    QProcessEnvironment environment;
+    environment.insert("HOME", TMP_DIR);
+    environment.insert("TMPDIR", TMP_DIR);
+    environment.insert("PATH", "/usr/local/bin:/usr/bin:/bin");
+    Process.setProcessEnvironment(environment);
+    Process.setWorkingDirectory(TMP_DIR);
 
     QObject::connect(&Process, &QProcess::readyReadStandardOutput, this, &RcloneInterface::OnOutput);
     QObject::connect(&Process, static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished), this, &RcloneInterface::OnFinished);

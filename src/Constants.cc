@@ -13,4 +13,5 @@ const char* const RCLONE_CONF = "/mnt/onboard/.adds/nickelcloud/rclone.conf";
 const char* const NICKELCLOUD_CONF = "/mnt/onboard/.adds/nickelcloud/nickelcloud.conf";
 const char* const UNINSTALL_FLAG = "/mnt/onboard/.adds/nickelcloud/uninstall";
 
+const char* const TMP_DIR = "/tmp";
 const char* const CACHE_DIR = "/tmp/nickelcloudcache";
