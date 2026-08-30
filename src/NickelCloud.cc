@@ -21,6 +21,7 @@ NickelCloud::NickelCloud()
 
     Config.Load(NICKELCLOUD_CONF);
 
+    SyncTimer.setSingleShot(true);
     UpdateSyncTimer();
     QObject::connect(&SyncTimer, &QTimer::timeout, this, &NickelCloud::Sync);
     QObject::connect(&Rclone, &RcloneInterface::Finished, this, &NickelCloud::OnRcloneFinished);
@@ -121,7 +122,6 @@ void NickelCloud::UpdateSyncTimer()
         return;
     }
 
-    SyncTimer.setSingleShot(true);
     SyncTimer.setInterval(interval * 1000);
 }
 

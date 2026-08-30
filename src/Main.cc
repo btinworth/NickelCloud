@@ -1,6 +1,7 @@
 #include "Constants.h"
 #include "NickelCloud.h"
 #include <NickelHook.h>
+#include <QDir>
 
 static int NickelCloudInit()
 {
@@ -8,13 +9,29 @@ static int NickelCloudInit()
     if (wm == nullptr)
     {
         nh_log("could not get WirelessManager instance");
-        return 0;
+        return 1;
     }
 
     static NickelCloud nickelCloud;
     QObject::connect(wm, SIGNAL(networkConnected()), &nickelCloud, SLOT(OnNetworkConnected()), Qt::UniqueConnection);
     QObject::connect(wm, SIGNAL(networkDisconnected()), &nickelCloud, SLOT(OnNetworkDisconnected()), Qt::UniqueConnection);
     return 0;
+}
+
+static bool NickelCloudUninstall()
+{
+    nh_log("removing NickelCloud config and program files");
+
+    const char* const dirs[] = {CONFIG_DIR, INSTALL_DIR};
+
+    auto deleted = true;
+    for (const auto* path : dirs)
+    {
+        QDir dir(path);
+        deleted &= !dir.exists() || dir.removeRecursively();
+    }
+
+    return deleted;
 }
 
 static struct nh_info NickelCloudInfo = {
@@ -51,4 +68,5 @@ NickelHook(
     .info = &NickelCloudInfo,
     .hook = NickelCloudHook,
     .dlsym = NickelCloudDlsym,
+    .uninstall = NickelCloudUninstall,
 )
