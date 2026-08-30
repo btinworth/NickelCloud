@@ -54,6 +54,36 @@ void ConfigTest::sources_ignoresEmptySource()
     QCOMPARE(config.GetSources().size(), 0);
 }
 
+void ConfigTest::sources_rejectsSourceWithoutRemote()
+{
+    // no ':', so rclone would treat this as a local path rather than a remote
+    auto config = LoadConfig(
+        "[sources]\n"
+        "eBooks = Books\n");
+
+    QCOMPARE(config.GetSources().size(), 0);
+}
+
+void ConfigTest::sources_rejectsSourceStartingWithDash()
+{
+    // rclone would read this as a flag
+    auto config = LoadConfig(
+        "[sources]\n"
+        "-v:eBooks = Books\n");
+
+    QCOMPARE(config.GetSources().size(), 0);
+}
+
+void ConfigTest::sources_rejectsSourceWithEmptyRemote()
+{
+    // on the fly backend syntax, which bypasses the configured remotes
+    auto config = LoadConfig(
+        "[sources]\n"
+        ":local:/etc = Books\n");
+
+    QCOMPARE(config.GetSources().size(), 0);
+}
+
 void ConfigTest::sources_ignoredOutsideSection()
 {
     // no [sources] header at all, so this should never be parsed as a source

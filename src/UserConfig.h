@@ -38,6 +38,7 @@ private:
     };
 
     static QString StripComment(const QString& line);
+    static bool IsValidSource(const QString& source);
 
     QString GetString(const QString& key, const QString& defaultValue = QString()) const;
     int GetInt(const QString& key, int defaultValue = 0) const;

@@ -73,7 +73,11 @@ void UserConfig::Load(const QString& path)
         else if (section == Section::Sources)
         {
             auto dest = ResolvePath(ONBOARD_DIR, value);
-            if (value.isEmpty() || dest.isEmpty())
+            if (!IsValidSource(key))
+            {
+                Log("ignoring invalid source: %s", qPrintable(key));
+            }
+            else if (value.isEmpty() || dest.isEmpty())
             {
                 Log("ignoring invalid destination: %s", qPrintable(value));
             }
@@ -200,6 +204,11 @@ bool UserConfig::GetBool(const QString& key, bool defaultValue) const
     }
 
     return defaultValue;
+}
+
+bool UserConfig::IsValidSource(const QString& source)
+{
+    return !source.startsWith('-') && source.indexOf(':') > 0;
 }
 
 QString UserConfig::StripComment(const QString& line)

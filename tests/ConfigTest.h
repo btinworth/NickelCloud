@@ -11,6 +11,9 @@ private slots:
     void sources_parsesBasicPairs();
     void sources_ignoresEmptyDestination();
     void sources_ignoresEmptySource();
+    void sources_rejectsSourceWithoutRemote();
+    void sources_rejectsSourceStartingWithDash();
+    void sources_rejectsSourceWithEmptyRemote();
     void sources_ignoredOutsideSection();
 
     void comments_stripFullLine();
