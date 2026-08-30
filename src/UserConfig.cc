@@ -127,6 +127,35 @@ int UserConfig::GetTransfers() const
     return DEFAULT_TRANSFERS;
 }
 
+int UserConfig::GetCheckers() const
+{
+    static const int DEFAULT_CHECKERS = 1;
+
+    auto checkers = GetInt("checkers", DEFAULT_CHECKERS);
+    if (checkers > 0)
+    {
+        return checkers;
+    }
+
+    nh_log("ignoring invalid checkers value '%d', defaulting to %d", checkers, DEFAULT_CHECKERS);
+    return DEFAULT_CHECKERS;
+}
+
+// per-transfer read buffer, in MiB
+int UserConfig::GetBufferSize() const
+{
+    static const int DEFAULT_BUFFER_SIZE = 1;
+
+    auto bufferSize = GetInt("buffer_size", DEFAULT_BUFFER_SIZE);
+    if (bufferSize >= 0)
+    {
+        return bufferSize;
+    }
+
+    nh_log("ignoring negative buffer_size '%d', defaulting to %d", bufferSize, DEFAULT_BUFFER_SIZE);
+    return DEFAULT_BUFFER_SIZE;
+}
+
 QStringList UserConfig::GetExtraArgs() const
 {
     return GetString("extra_args").split(' ', QString::SkipEmptyParts);

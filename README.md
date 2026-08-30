@@ -46,6 +46,8 @@ In `[general]` inside `nickelcloud.conf`:
 | `mode` | `copy` | `copy` adds/updates files. `sync` also deletes local files removed from cloud. |
 | `interval` | `300` | Seconds between checks while WiFi is connected. Use `0` to run only once per connection. |
 | `transfers` | `1` | Number of simultaneous file transfers. |
+| `checkers` | `1` | Number of simultaneous file comparisons. Raising this speeds up large libraries but costs CPU and battery. |
+| `buffer_size` | `1` | Read buffer per transfer, in MiB. Raising this uses more RAM. `0` disables buffering. |
 | `log` | `false` | If `true`, writes logs to `/mnt/onboard` when changes/failures occur. |
 | `extra_args` | (empty) | Extra rclone flags, space-separated. |
 

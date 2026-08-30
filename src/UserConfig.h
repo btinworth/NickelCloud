@@ -19,6 +19,8 @@ public:
     QString GetMode() const;
     int GetInterval() const;
     int GetTransfers() const;
+    int GetCheckers() const;
+    int GetBufferSize() const;
     QStringList GetExtraArgs() const;
     bool GetLogEnabled() const;
 

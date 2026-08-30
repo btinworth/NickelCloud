@@ -166,6 +166,13 @@ void NickelCloud::StartSync(const QString& source, const QString& dest)
          << "--log-level" << "INFO"
          << "--use-json-log"
          << "--transfers" << QString::number(Config.GetTransfers())
+         << "--checkers" << QString::number(Config.GetCheckers())
+         << "--buffer-size" << QString::number(Config.GetBufferSize()) + "M"
+         << "--use-mmap"
+         << "--contimeout" << "30s"
+         << "--timeout" << "60s"
+         << "--retries" << "1"
+         << "--low-level-retries" << "3"
          << Config.GetExtraArgs();
 
     Rclone.Start(args, source);
