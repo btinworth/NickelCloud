@@ -5,16 +5,31 @@
 
 static int NickelCloudInit()
 {
+    static NickelCloud nickelCloud;
+
     auto* wm = WirelessManagerInstance();
-    if (wm == nullptr)
+    if (wm != nullptr)
     {
-        nh_log("could not get WirelessManager instance");
+        QObject::connect(wm, SIGNAL(networkConnected()), &nickelCloud, SLOT(OnNetworkConnected()), Qt::UniqueConnection);
+        QObject::connect(wm, SIGNAL(networkDisconnected()), &nickelCloud, SLOT(OnNetworkDisconnected()), Qt::UniqueConnection);
+    }
+    else
+    {
+        nh_log("could not get WirelessManager instance, syncing will not respond to network changes");
         return 1;
     }
 
-    static NickelCloud nickelCloud;
-    QObject::connect(wm, SIGNAL(networkConnected()), &nickelCloud, SLOT(OnNetworkConnected()), Qt::UniqueConnection);
-    QObject::connect(wm, SIGNAL(networkDisconnected()), &nickelCloud, SLOT(OnNetworkDisconnected()), Qt::UniqueConnection);
+    auto* pwm = PlugWorkflowManagerInstance();
+    if (pwm != nullptr)
+    {
+        QObject::connect(pwm, SIGNAL(aboutToConnect()), &nickelCloud, SLOT(OnUsbConnecting()), Qt::UniqueConnection);
+        QObject::connect(pwm, SIGNAL(doneProcessing()), &nickelCloud, SLOT(OnUsbDoneProcessing()), Qt::UniqueConnection);
+    }
+    else
+    {
+        nh_log("could not get PlugWorkflowManager instance, syncing will not pause for USB");
+    }
+
     return 0;
 }
 
@@ -49,6 +64,11 @@ static struct nh_dlsym NickelCloudDlsym[] = {
         .name = "_ZN15WirelessManager14sharedInstanceEv",
         .out = nh_symoutptr(WirelessManagerInstance),
         .desc = "WirelessManager::sharedInstance",
+    },
+    {
+        .name = "_ZN19PlugWorkflowManager14sharedInstanceEv",
+        .out = nh_symoutptr(PlugWorkflowManagerInstance),
+        .desc = "PlugWorkflowManager::sharedInstance",
     },
     {
         .name = "_ZN15N3FSSyncManager14sharedInstanceEv",

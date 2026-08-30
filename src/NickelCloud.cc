@@ -11,6 +11,7 @@
 #include <QTimer>
 
 QObject* (*WirelessManagerInstance)() = nullptr;
+QObject* (*PlugWorkflowManagerInstance)() = nullptr;
 QObject* (*N3FSSyncManagerInstance)() = nullptr;
 void (*N3FSSyncManagerSync)(QObject*, QStringList*) = nullptr;
 
@@ -41,6 +42,21 @@ void NickelCloud::OnNetworkDisconnected()
     SyncQueue.clear();
 }
 
+void NickelCloud::OnUsbConnecting()
+{
+    // onboard is about to be handed to the host, so nothing under it stays writable
+    UsbConnected = true;
+    SyncTimer.stop();
+    Rclone.Stop();
+    SyncQueue.clear();
+}
+
+void NickelCloud::OnUsbDoneProcessing()
+{
+    UsbConnected = false;
+    ScheduleNextSync();
+}
+
 void NickelCloud::OnRcloneFinished(bool success, bool transferred)
 {
     AnyFailed |= !success;
@@ -56,6 +72,11 @@ void NickelCloud::OnRcloneFinished(bool success, bool transferred)
 
 void NickelCloud::Sync()
 {
+    if (UsbConnected)
+    {
+        return;
+    }
+
     if (!SyncQueue.isEmpty())
     {
         // sync cycle is still running, do nothing
@@ -127,7 +148,7 @@ void NickelCloud::UpdateSyncTimer()
 
 void NickelCloud::ScheduleNextSync()
 {
-    if (Offline)
+    if (Offline || UsbConnected)
     {
         return;
     }
