@@ -2,6 +2,7 @@
 #include "Constants.h"
 #include "Log.h"
 #include "RcloneInterface.h"
+#include "Toast.h"
 #include <QDir>
 #include <QFile>
 #include <QObject>
@@ -213,6 +214,8 @@ void NickelCloud::SyncNext()
 
         if (AnyTransferred)
         {
+            ShowToast("NickelCloud", "Files synced from cloud storage, updating library...");
+
             // files have been modified, trigger a library scan
             QStringList paths;
             for (const auto& pair : Config.GetSources())
