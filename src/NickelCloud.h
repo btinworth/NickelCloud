@@ -44,5 +44,6 @@ private:
     bool AnyFailed = false;
     bool Offline = false;
     bool UsbConnected = false;
+    bool Cancelled = false;
     QTimer SyncTimer;
 };

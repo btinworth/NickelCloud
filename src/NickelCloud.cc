@@ -40,8 +40,14 @@ void NickelCloud::OnNetworkDisconnected()
 {
     Offline = true;
     SyncTimer.stop();
-    Rclone.Stop();
-    SyncQueue.clear();
+
+    if (!SyncQueue.isEmpty())
+    {
+        // a cycle is in flight; its completion must not run once cancelled
+        Cancelled = true;
+        Rclone.Stop();
+        SyncQueue.clear();
+    }
 }
 
 void NickelCloud::OnUsbConnecting()
@@ -49,8 +55,13 @@ void NickelCloud::OnUsbConnecting()
     // onboard is about to be handed to the host, so nothing under it stays writable
     UsbConnected = true;
     SyncTimer.stop();
-    Rclone.Stop();
-    SyncQueue.clear();
+
+    if (!SyncQueue.isEmpty())
+    {
+        Cancelled = true;
+        Rclone.Stop();
+        SyncQueue.clear();
+    }
 }
 
 void NickelCloud::OnUsbDoneProcessing()
@@ -61,6 +72,13 @@ void NickelCloud::OnUsbDoneProcessing()
 
 void NickelCloud::OnRcloneFinished(bool success, bool transferred)
 {
+    if (Cancelled)
+    {
+        // this run belonged to a cycle that was cancelled; queue is already cleared
+        Cancelled = false;
+        return;
+    }
+
     AnyFailed |= !success;
     AnyTransferred |= transferred;
 
