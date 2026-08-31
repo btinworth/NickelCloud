@@ -69,7 +69,7 @@ void UserConfig::Load(const QString& path)
 
         if (section == Section::General)
         {
-            General.insert(key, value);
+            General.insert(key.toLower(), value);
         }
         else if (section == Section::Sources)
         {
