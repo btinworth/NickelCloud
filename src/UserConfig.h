@@ -26,6 +26,7 @@ public:
     int GetCheckers() const;
     int GetBufferSize() const;
     bool GetLogEnabled() const;
+    bool GetNotifyEnabled() const;
 
     const QQueue<SyncPair>& GetSources() const;
 

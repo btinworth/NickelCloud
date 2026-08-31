@@ -214,7 +214,10 @@ void NickelCloud::SyncNext()
 
         if (AnyTransferred)
         {
-            ShowToast("NickelCloud", "Files synced from cloud storage, updating library...");
+            if (Config.GetNotifyEnabled())
+            {
+                ShowToast("NickelCloud", "Files synced from cloud storage, updating library...");
+            }
 
             // files have been modified, trigger a library scan
             QStringList paths;

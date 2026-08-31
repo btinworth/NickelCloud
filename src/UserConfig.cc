@@ -169,6 +169,11 @@ bool UserConfig::GetLogEnabled() const
     return GetBool("log", false);
 }
 
+bool UserConfig::GetNotifyEnabled() const
+{
+    return GetBool("notify", false);
+}
+
 const QQueue<SyncPair>& UserConfig::GetSources() const
 {
     return Sources;
