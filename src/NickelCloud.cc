@@ -181,20 +181,13 @@ void NickelCloud::ScheduleNextSync()
     }
 }
 
-void NickelCloud::StartSync(const QString& source, const QString& dest)
+bool NickelCloud::StartSync(const QString& source, const QString& dest)
 {
     if (!QDir().mkpath(dest))
     {
         AnyFailed = true;
         Log("failed to create destination directory for %s: %s", qPrintable(source), qPrintable(dest));
-
-        if (!SyncQueue.isEmpty())
-        {
-            SyncQueue.dequeue();
-        }
-
-        SyncNext();
-        return;
+        return false;
     }
 
     Log("syncing %s -> %s", qPrintable(source), qPrintable(dest));
@@ -218,50 +211,56 @@ void NickelCloud::StartSync(const QString& source, const QString& dest)
          << "--low-level-retries" << "3";
 
     Rclone.Start(args, source);
+    return true;
 }
 
 // start the next queued sync, or finish the cycle if the queue is empty
 void NickelCloud::SyncNext()
 {
-    if (SyncQueue.isEmpty())
+    while (!SyncQueue.isEmpty())
     {
-        if (AnyFailed)
+        const auto& next = SyncQueue.head();
+        if (StartSync(next.source, next.dest))
         {
-            Log("sync cycle finished with errors");
+            return;
         }
 
-        if (AnyTransferred)
-        {
-            if (Config.GetNotifyEnabled())
-            {
-                ShowToast("NickelCloud", "Files synced from cloud storage, updating library...");
-            }
-
-            // files have been modified, trigger a library scan
-            QStringList paths;
-            for (const auto& pair : Config.GetSources())
-            {
-                paths.append(pair.dest);
-            }
-
-            if (N3FSSyncManagerInstance != nullptr && N3FSSyncManagerSync != nullptr)
-            {
-                auto* fss = N3FSSyncManagerInstance();
-                if (fss != nullptr)
-                {
-                    N3FSSyncManagerSync(fss, &paths);
-                }
-            }
-            else
-            {
-                Log("N3FSSyncManager unavailable, skipping library scan");
-            }
-        }
-
-        ScheduleNextSync();
-        return;
+        // mkpath failed; drop it and try the next source instead of recursing
+        SyncQueue.dequeue();
     }
 
-    const auto& next = SyncQueue.head();
-    StartSync(next.source, next.dest);
+    if (AnyFailed)
+    {
+        Log("sync cycle finished with errors");
+    }
+
+    if (AnyTransferred)
+    {
+        if (Config.GetNotifyEnabled())
+        {
+            ShowToast("NickelCloud", "Files synced from cloud storage, updating library...");
+        }
+
+        // files have been modified, trigger a library scan
+        QStringList paths;
+        for (const auto& pair : Config.GetSources())
+        {
+            paths.append(pair.dest);
+        }
+
+        if (N3FSSyncManagerInstance != nullptr && N3FSSyncManagerSync != nullptr)
+        {
+            auto* fss = N3FSSyncManagerInstance();
+            if (fss != nullptr)
+            {
+                N3FSSyncManagerSync(fss, &paths);
+            }
+        }
+        else
+        {
+            Log("N3FSSyncManager unavailable, skipping library scan");
+        }
+    }
+
+    ScheduleNextSync();
 }

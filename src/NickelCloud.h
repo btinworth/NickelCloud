@@ -34,7 +34,7 @@ private:
     void ReadConfig();
     void UpdateSyncTimer();
     void ScheduleNextSync();
-    void StartSync(const QString& source, const QString& dest);
+    bool StartSync(const QString& source, const QString& dest);
     void SyncNext();
 
     UserConfig Config;
