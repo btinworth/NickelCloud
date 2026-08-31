@@ -45,7 +45,7 @@ void NickelCloud::OnNetworkDisconnected()
     {
         // a cycle is in flight; its completion must not run once cancelled
         Cancelled = true;
-        Rclone.Stop();
+        Rclone.Stop(false); // not urgent, don't block the caller waiting for exit
         SyncQueue.clear();
     }
 }

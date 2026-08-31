@@ -4,6 +4,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QProcessEnvironment>
+#include <QTimer>
 
 namespace
 {
@@ -42,7 +43,7 @@ void RcloneInterface::Start(const QStringList& args, const QString& source)
     Process.start(RCLONE_BIN, args);
 }
 
-void RcloneInterface::Stop()
+void RcloneInterface::Stop(bool wait)
 {
     if (Process.state() == QProcess::NotRunning)
     {
@@ -53,6 +54,19 @@ void RcloneInterface::Stop()
     Stopping = true;
 
     Process.terminate();
+
+    if (!wait)
+    {
+        // Start() resets Stopping, so a stale timer won't kill an unrelated later run
+        QTimer::singleShot(TERMINATE_TIMEOUT_MS, this, [this]() {
+            if (Stopping && Process.state() != QProcess::NotRunning)
+            {
+                Log("rclone did not exit, killing it");
+                Process.kill();
+            }
+        });
+        return;
+    }
 
     if (!Process.waitForFinished(TERMINATE_TIMEOUT_MS))
     {

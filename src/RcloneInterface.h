@@ -14,7 +14,8 @@ public:
     explicit RcloneInterface(QObject* parent = nullptr);
 
     void Start(const QStringList& args, const QString& source);
-    void Stop();
+    // wait=false requests termination without blocking the caller; escalates to kill() asynchronously
+    void Stop(bool wait = true);
 
 signals:
     void Finished(bool success, bool transferred);
