@@ -3,6 +3,7 @@
 #include "Log.h"
 #include <QDir>
 #include <QFile>
+#include <limits>
 
 void UserConfig::Load(const QString& path)
 {
@@ -109,13 +110,20 @@ QString UserConfig::GetMode() const
 
 int UserConfig::GetInterval() const
 {
-    static const int DEFAULT_INTERVAL = 5 * 60; // seconds (5m)
+    static const int DEFAULT_INTERVAL = 5 * 60;                             // seconds (5m)
+    static const int MAX_INTERVAL = std::numeric_limits<int>::max() / 1000; // avoid overflow when converted to ms
 
     auto interval = GetInt("interval", DEFAULT_INTERVAL);
     if (interval < 0)
     {
         Log("ignoring negative interval '%d', defaulting to %d", interval, DEFAULT_INTERVAL);
         return DEFAULT_INTERVAL;
+    }
+
+    if (interval > MAX_INTERVAL)
+    {
+        Log("clamping interval '%d' to %d", interval, MAX_INTERVAL);
+        return MAX_INTERVAL;
     }
 
     return interval;
