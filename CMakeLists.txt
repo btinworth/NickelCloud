@@ -84,7 +84,7 @@ target_link_libraries(nickelcloud PRIVATE
     ${CMAKE_DL_LIBS}
 )
 
-set(RCLONE_VERSION "1.75.1" CACHE STRING "rclone version to package")
+set(RCLONE_VERSION "1.75.2" CACHE STRING "rclone version to package")
 
 function(add_nickelcloud_download output script)
     set(output_path "${CMAKE_CURRENT_BINARY_DIR}/${output}")
