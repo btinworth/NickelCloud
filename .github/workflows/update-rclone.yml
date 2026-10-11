@@ -26,9 +26,9 @@ jobs:
         id: version
         run: |
           latest_version="$(curl -fsSL https://downloads.rclone.org/version.txt | sed 's/^rclone v//' | xargs)"
-          current_version="$(awk -F'= *' '/^RCLONE_VERSION \?=/{print $2}' Makefile | xargs)"
+          current_version="$(sed -n -E 's/^set\(RCLONE_VERSION "([^"]+)" CACHE STRING.*/\1/p' CMakeLists.txt)"
           : "${latest_version:?Could not parse latest rclone version from version.txt}"
-          : "${current_version:?Could not read pinned rclone version from Makefile}"
+          : "${current_version:?Could not read pinned rclone version from CMakeLists.txt}"
 
           echo "Latest rclone version: ${latest_version}"
           echo "Current rclone version: ${current_version}"
@@ -36,10 +36,10 @@ jobs:
           echo "latest=${latest_version}" >> "$GITHUB_OUTPUT"
           echo "current=${current_version}" >> "$GITHUB_OUTPUT"
 
-      - name: Update Makefile
+      - name: Update CMakeLists
         if: steps.version.outputs.latest != steps.version.outputs.current
         run: |
-          sed -i -E "s/^RCLONE_VERSION \?= .*/RCLONE_VERSION ?= ${{ steps.version.outputs.latest }}/" Makefile
+          sed -i -E "s/^set\\(RCLONE_VERSION \".*\" CACHE STRING.*/set(RCLONE_VERSION \"${{ steps.version.outputs.latest }}\" CACHE STRING \"rclone version to package\")/" CMakeLists.txt
 
       - name: Commit and create pull request
         if: steps.version.outputs.latest != steps.version.outputs.current
@@ -56,7 +56,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git checkout -B "${branch_name}"
-          git add Makefile
+          git add CMakeLists.txt
 
           git commit -m "Update rclone to ${{ steps.version.outputs.latest }}"
           git push --force --set-upstream origin "${branch_name}"

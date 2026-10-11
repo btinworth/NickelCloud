@@ -2,26 +2,18 @@
 KoboRoot.tgz
 
 # build artifacts
+/build/
 /libnickelcloud.so
 /src/*.o
 /src/*.moc
 compile_commands.json
 .cache/
 
-# downloaded artifacts
+# downloaded artifacts from earlier build versions
 /rclone-armv7
 /rclone-*.zip
 /cacert.pem
 
 # qmake test build artifacts
-/tests/Makefile
-/tests/*.o
-/tests/*.moc
-/tests/moc_*.cpp
-/tests/.qmake.stash
-/tests/moc_predefs.h
-/tests/target_wrapper.sh
-/tests/tests
-
 .DS_Store
 .vscode

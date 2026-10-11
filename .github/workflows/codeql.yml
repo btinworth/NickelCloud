@@ -19,13 +19,19 @@ jobs:
     name: CodeQL
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/pgaskin/nickeltc:1
+      image: ghcr.io/nicoverbruggen/kobuild:qt5-v0.1.0
 
     steps:
+      - name: Install Git
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends git
+
       - name: Checkout
         uses: actions/checkout@v7
         with:
           submodules: recursive
+          fetch-depth: 0
 
       - name: CodeQL Init
         uses: github/codeql-action/init@v4
@@ -36,9 +42,11 @@ jobs:
 
       - name: Build
         run: |
-          make clean
-          make
-          make koboroot
+          cmake -S . -B build/qt5 -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE=/tc/qt5/toolchain.cmake
+
+          cmake --build build/qt5 --target nickelcloud
 
       - name: CodeQL Analyze
         uses: github/codeql-action/analyze@v4

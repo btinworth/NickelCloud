@@ -1,10 +1,13 @@
 #!/bin/sh
 
-set -e
+set -eu
 
-cd "$(dirname "$0")"
+ROOT=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+IMAGE=${KOBUILD_QT5_IMAGE:-ghcr.io/nicoverbruggen/kobuild:qt5-v0.1.0}
 
-if command -v docker >/dev/null 2>&1; then
+if [ -n "${CONTAINER_ENGINE:-}" ]; then
+  RUNTIME=$CONTAINER_ENGINE
+elif command -v docker >/dev/null 2>&1; then
   RUNTIME=docker
 elif command -v container >/dev/null 2>&1; then
   RUNTIME=container
@@ -14,8 +17,13 @@ else
   exit 1
 fi
 
-"$RUNTIME" run --rm --platform linux/amd64 \
-  --volume "$PWD:$PWD" \
-  --workdir "$PWD" \
-  ghcr.io/pgaskin/nickeltc:1 \
-  sh -c 'make clean && make && make koboroot'
+"$RUNTIME" run --rm --user "$(id -u):$(id -g)" \
+  --volume "$ROOT:/work" \
+  --workdir /work \
+  "$IMAGE" \
+  sh -ec '
+    cmake -S . -B build/qt5 -G Ninja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_TOOLCHAIN_FILE=/tc/qt5/toolchain.cmake
+    cmake --build build/qt5 --target koboroot
+  '

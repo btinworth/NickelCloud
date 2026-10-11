@@ -15,23 +15,29 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/nicoverbruggen/kobuild:qt5-v0.1.0
 
     steps:
+      - name: Install Git
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends git
+
       - name: Checkout
         uses: actions/checkout@v7
         with:
           submodules: recursive
 
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: "5.*"
-          cache: true
+      - name: Build
+        run: |
+          cmake -S . -B build/tests -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE=/tc/qt5/toolchain.cmake \
+            -DBUILD_TESTING=ON \
+            "-DCMAKE_CROSSCOMPILING_EMULATOR=qemu-arm;-L;/usr/arm-linux-gnueabihf;-E;LD_LIBRARY_PATH=/usr/arm-linux-gnueabihf/lib:/tc/qt5/sysroot/usr/lib"
 
-      - name: Build Tests
-        working-directory: tests
-        run: qmake && make
+          cmake --build build/tests --target nickelcloud_tests
 
-      - name: Run Tests
-        working-directory: tests
-        run: ./tests
+      - name: Test
+        run: ctest --test-dir build/tests --output-on-failure

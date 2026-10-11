@@ -15,17 +15,30 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/nicoverbruggen/kobuild:qt5-v0.1.0
 
     steps:
+      - name: Install Git
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends git
+
       - name: Checkout
         uses: actions/checkout@v7
         with:
           submodules: recursive
+          fetch-depth: 0
 
       - name: Build
-        run: ./build.sh
+        run: |
+          cmake -S . -B build/qt5 -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE=/tc/qt5/toolchain.cmake
 
-      - name: Upload artifact
+          cmake --build build/qt5 --target koboroot
+
+      - name: Upload
         uses: actions/upload-artifact@v7
         with:
           path: KoboRoot.tgz
