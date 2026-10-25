@@ -33,6 +33,9 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
+      - name: Configure Git safe directory
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
       - name: CodeQL Init
         uses: github/codeql-action/init@v4
         with:
@@ -44,7 +47,8 @@ jobs:
         run: |
           cmake -S . -B build/qt5 -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_TOOLCHAIN_FILE=/tc/qt5/toolchain.cmake
+            -DCMAKE_TOOLCHAIN_FILE=/tc/qt5/toolchain.cmake \
+            -DAUTOGEN_BUILD_DIR="$RUNNER_TEMP/nickelcloud-autogen"
 
           cmake --build build/qt5 --target nickelcloud
 
@@ -52,3 +56,4 @@ jobs:
         uses: github/codeql-action/analyze@v4
         with:
           category: /language:cpp
+          checkout_path: ${{ github.workspace }}

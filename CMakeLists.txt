@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.21)
 project(NickelCloud LANGUAGES C CXX)
 
 option(BUILD_TESTING "Build NickelCloud unit tests" OFF)
+set(AUTOGEN_BUILD_DIR "" CACHE PATH
+    "Directory for Qt-generated files for the nickelcloud target")
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_C_STANDARD 11)
@@ -38,6 +40,10 @@ file(GLOB NICKELCLOUD_SOURCES CONFIGURE_DEPENDS
 add_library(nickelcloud SHARED
     ${NICKELCLOUD_SOURCES}
 )
+if(AUTOGEN_BUILD_DIR)
+    set_property(TARGET nickelcloud PROPERTY AUTOGEN_BUILD_DIR
+        "${AUTOGEN_BUILD_DIR}")
+endif()
 set_target_properties(nickelcloud PROPERTIES
     BUILD_RPATH "/usr/local/Kobo;/usr/local/Qt-5.2.1-arm/lib"
     INSTALL_RPATH "/usr/local/Kobo;/usr/local/Qt-5.2.1-arm/lib"
