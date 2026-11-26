@@ -16,7 +16,7 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/nicoverbruggen/kobuild:qt5-v0.1.0
+      image: ghcr.io/nicoverbruggen/kobuild:nickel-qt5
 
     steps:
       - name: Install Git
